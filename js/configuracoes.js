@@ -1,5 +1,5 @@
 // =========================================================
-// CONFIGURAÇÕES — perfil, senha e logout
+// CONFIGURAÇÕES — perfil, senha, logout e lembretes via Telegram
 // =========================================================
 
 let USUARIO_CONFIG = null;
@@ -17,13 +17,14 @@ let USUARIO_CONFIG = null;
   await carregarPreferenciasTelegram();
   document.getElementById('btn-gerar-codigo').addEventListener('click', gerarCodigoVinculacao);
   document.getElementById('btn-desvincular-telegram').addEventListener('click', desvincularTelegram);
-  document.getElementById('form-lembretes').addEventListener('submit', salvarPreferenciasLembretes);
+  document.getElementById('lembretes-ativo').addEventListener('change', salvarStatusLembretes);
+  document.getElementById('btn-add-regra').addEventListener('click', adicionarRegra);
 })();
 
 async function carregarPreferenciasTelegram() {
   const { data, error } = await supabaseClient
     .from('usuarios')
-    .select('telegram_chat_id, lembrete_dias, lembrete_horas, lembrete_minutos, lembretes_ativos')
+    .select('telegram_chat_id, lembretes_ativos')
     .eq('id', USUARIO_CONFIG.id)
     .single();
 
@@ -36,10 +37,8 @@ async function carregarPreferenciasTelegram() {
   document.getElementById('telegram-vinculado').classList.toggle('hidden', !vinculado);
 
   if (vinculado) {
-    document.getElementById('lembrete-dias').value = String(data.lembrete_dias ?? 1);
-    document.getElementById('lembrete-horas').value = String(data.lembrete_horas ?? 0);
-    document.getElementById('lembrete-minutos').value = String(data.lembrete_minutos ?? 0);
     document.getElementById('lembretes-ativo').value = String(data.lembretes_ativos ?? true);
+    await carregarRegrasLembrete();
   }
 }
 
@@ -78,26 +77,138 @@ async function desvincularTelegram() {
   await carregarPreferenciasTelegram();
 }
 
-async function salvarPreferenciasLembretes(e) {
-  e.preventDefault();
-  const payload = {
-    lembrete_dias: Number(document.getElementById('lembrete-dias').value) || 0,
-    lembrete_horas: Number(document.getElementById('lembrete-horas').value) || 0,
-    lembrete_minutos: Number(document.getElementById('lembrete-minutos').value) || 0,
-    lembretes_ativos: document.getElementById('lembretes-ativo').value === 'true',
-  };
+async function salvarStatusLembretes() {
+  const ativo = document.getElementById('lembretes-ativo').value === 'true';
 
   const { error } = await supabaseClient
     .from('usuarios')
-    .update(payload)
+    .update({ lembretes_ativos: ativo })
     .eq('id', USUARIO_CONFIG.id);
 
   if (error) {
-    mostrarToast('Erro ao salvar preferências de lembretes.', 'error');
+    mostrarToast('Erro ao salvar preferência de lembretes.', 'error');
     return;
   }
-  mostrarToast('Preferências de lembretes salvas!', 'success');
+  mostrarToast(ativo ? 'Lembretes ativados.' : 'Lembretes desativados.', 'success');
 }
+
+// ---------------------------------------------------------
+// Regras de lembrete (múltiplos avisos por tarefa)
+// ---------------------------------------------------------
+
+async function carregarRegrasLembrete() {
+  const { data, error } = await supabaseClient
+    .from('lembrete_regras')
+    .select('id, dias, horas, minutos')
+    .eq('user_id', USUARIO_CONFIG.id)
+    .order('created_at', { ascending: true });
+
+  if (error) {
+    mostrarToast('Erro ao carregar lembretes configurados.', 'error');
+    return;
+  }
+
+  renderizarRegras(data || []);
+}
+
+function antecedenciaMinutos(regra) {
+  return (regra.dias || 0) * 1440 + (regra.horas || 0) * 60 + (regra.minutos || 0);
+}
+
+function formatarRegra(regra) {
+  const partes = [];
+  if (regra.dias) partes.push(`${regra.dias} dia${regra.dias > 1 ? 's' : ''}`);
+  if (regra.horas) partes.push(`${regra.horas} hora${regra.horas > 1 ? 's' : ''}`);
+  if (regra.minutos) partes.push(`${regra.minutos} minuto${regra.minutos > 1 ? 's' : ''}`);
+  return partes.length ? `${partes.join(' e ')} antes` : 'No momento do vencimento';
+}
+
+function renderizarRegras(regras) {
+  const lista = document.getElementById('lista-regras');
+  lista.innerHTML = '';
+
+  if (regras.length === 0) {
+    const vazio = document.createElement('li');
+    vazio.className = 'text-muted text-sm';
+    vazio.textContent = 'Nenhum aviso configurado ainda — adicione um abaixo.';
+    lista.appendChild(vazio);
+    return;
+  }
+
+  regras
+    .slice()
+    .sort((a, b) => antecedenciaMinutos(b) - antecedenciaMinutos(a))
+    .forEach((regra) => {
+      const li = document.createElement('li');
+      li.className = 'flex items-center gap-8 mb-8';
+      li.style.justifyContent = 'space-between';
+      li.style.padding = '8px 12px';
+      li.style.background = '#F8F9FB';
+      li.style.borderRadius = '8px';
+
+      const texto = document.createElement('span');
+      texto.textContent = `📌 ${formatarRegra(regra)}`;
+
+      const btnRemover = document.createElement('button');
+      btnRemover.type = 'button';
+      btnRemover.className = 'btn btn-danger';
+      btnRemover.style.padding = '4px 10px';
+      btnRemover.style.fontSize = '12px';
+      btnRemover.textContent = 'Remover';
+      btnRemover.addEventListener('click', () => removerRegra(regra.id));
+
+      li.appendChild(texto);
+      li.appendChild(btnRemover);
+      lista.appendChild(li);
+    });
+}
+
+async function adicionarRegra() {
+  const dias = Number(document.getElementById('regra-dias').value) || 0;
+  const horas = Number(document.getElementById('regra-horas').value) || 0;
+  const minutos = Number(document.getElementById('regra-minutos').value) || 0;
+
+  if (dias === 0 && horas === 0 && minutos === 0) {
+    mostrarToast('Defina ao menos dias, horas ou minutos.', 'error');
+    return;
+  }
+
+  const { error } = await supabaseClient
+    .from('lembrete_regras')
+    .insert({ user_id: USUARIO_CONFIG.id, dias, horas, minutos });
+
+  if (error) {
+    mostrarToast('Erro ao adicionar lembrete.', 'error');
+    return;
+  }
+
+  document.getElementById('regra-dias').value = '0';
+  document.getElementById('regra-horas').value = '0';
+  document.getElementById('regra-minutos').value = '0';
+
+  mostrarToast('Lembrete adicionado!', 'success');
+  await carregarRegrasLembrete();
+}
+
+async function removerRegra(id) {
+  const { error } = await supabaseClient
+    .from('lembrete_regras')
+    .delete()
+    .eq('id', id)
+    .eq('user_id', USUARIO_CONFIG.id);
+
+  if (error) {
+    mostrarToast('Erro ao remover lembrete.', 'error');
+    return;
+  }
+
+  mostrarToast('Lembrete removido.', 'success');
+  await carregarRegrasLembrete();
+}
+
+// ---------------------------------------------------------
+// Perfil e senha
+// ---------------------------------------------------------
 
 async function salvarPerfil(e) {
   e.preventDefault();
