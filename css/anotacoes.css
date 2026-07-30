@@ -1,0 +1,228 @@
+/* =========================================================
+   PÁGINA DE ANOTAÇÕES — layout lista + painel lateral
+   (extraído do anotacoes.html, adaptado para o tema claro)
+   ========================================================= */
+
+.notes-layout {
+  display: flex;
+  gap: 20px;
+  height: calc(100vh - 190px);
+  min-height: 420px;
+}
+
+/* ----- Coluna: lista ----- */
+.notes-list {
+  width: 300px;
+  flex: 0 0 300px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding-right: 4px;
+}
+
+.note-list-item {
+  background: var(--card);
+  border: 1px solid var(--gray-light);
+  border-left: 3px solid var(--nota-cor, var(--primary));
+  border-radius: 10px;
+  padding: 12px 14px;
+  cursor: pointer;
+  box-shadow: var(--shadow);
+  transition: background var(--transition), border-color var(--transition);
+}
+
+.note-list-item:hover {
+  background: var(--bg);
+}
+
+.note-list-item.is-active {
+  background: rgba(79, 125, 243, 0.08);
+  border-color: var(--primary);
+}
+
+.note-list-item__title {
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: var(--text);
+  margin-bottom: 4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.note-list-item__materia {
+  font-size: 0.78rem;
+  color: var(--primary);
+  margin-bottom: 2px;
+}
+
+.note-list-item__tempo {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+/* ----- Coluna: painel de detalhe/edição ----- */
+.notes-detail {
+  flex: 1;
+  background: var(--card);
+  border: 1px solid var(--gray-light);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.notes-detail__empty {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+  text-align: center;
+  padding: 40px;
+}
+
+.notes-detail__editor {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  padding: 18px 22px;
+}
+
+.notes-detail__header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.notes-detail__title-input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: var(--text);
+  font-size: 1.4rem;
+  font-weight: 700;
+  padding: 4px 2px;
+}
+
+.notes-detail__title-input::placeholder {
+  color: var(--text-muted);
+}
+
+.notes-detail__fav {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  font-size: 1.2rem;
+  cursor: pointer;
+}
+
+.notes-detail__fav.is-active {
+  color: var(--warning);
+}
+
+.notes-detail__meta {
+  display: flex;
+  gap: 10px;
+  margin: 8px 0 14px;
+  flex-wrap: wrap;
+}
+
+.notes-detail__meta select,
+.notes-detail__meta input {
+  max-width: 200px;
+}
+
+.notes-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 4px;
+  border-top: 1px solid var(--gray-light);
+  border-bottom: 1px solid var(--gray-light);
+  margin-bottom: 10px;
+  flex-wrap: wrap;
+}
+
+.notes-toolbar button {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  width: 30px;
+  height: 30px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background var(--transition), color var(--transition);
+}
+
+.notes-toolbar button:hover {
+  background: var(--gray-light);
+  color: var(--text);
+}
+
+.notes-toolbar__divider {
+  width: 1px;
+  height: 18px;
+  background: var(--gray-light);
+  margin: 0 4px;
+}
+
+.notes-detail__content {
+  flex: 1;
+  width: 100%;
+  resize: none;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: var(--text);
+  font-size: 0.95rem;
+  line-height: 1.6;
+  min-height: 0;
+}
+
+.notes-detail__footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 12px;
+  border-top: 1px solid var(--gray-light);
+  margin-top: 8px;
+}
+
+.notes-detail__status {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.notes-detail__status.is-dirty {
+  color: var(--warning);
+}
+
+.notes-detail__actions {
+  display: flex;
+  gap: 8px;
+}
+
+@media (max-width: 860px) {
+  .notes-layout {
+    flex-direction: column;
+    height: auto;
+  }
+  .notes-list {
+    width: 100%;
+    flex: none;
+    max-height: 280px;
+  }
+  .notes-detail {
+    min-height: 420px;
+  }
+}
