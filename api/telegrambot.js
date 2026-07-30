@@ -270,6 +270,15 @@ async function mostrarMenuTarefas(supabaseAdmin, chatId, messageId) {
   return enviarMensagem(chatId, texto, teclaMenuTarefas());
 }
 
+// Usado quando uma ação é concluída (tarefa adicionada, finalizada, listagem
+// exibida, etc.): deixa o resultado fixo na mensagem editada (sem botões) e
+// manda o menu principal como mensagem nova, reiniciando o bot do início.
+async function finalizarAcao(supabaseAdmin, chatId, messageId, textoResultado) {
+  await editarMensagem(chatId, messageId, textoResultado, { inline_keyboard: [] });
+  await limparEstado(supabaseAdmin, chatId);
+  return enviarMensagem(chatId, '🏠 <b>Menu principal</b>\n\nO que você deseja fazer?', teclaMenuPrincipal());
+}
+
 // ---------------------------------------------------------
 // 1.1 ADICIONAR TAREFA
 // ---------------------------------------------------------
@@ -421,7 +430,7 @@ async function confirmarAdicionarTarefa(supabaseAdmin, chatId, messageId, usuari
     return editarMensagem(chatId, messageId, '❌ Não consegui salvar a tarefa. Tente novamente.', teclaMenuTarefas());
   }
 
-  return editarMensagem(chatId, messageId, `✅ Tarefa "<b>${escapeHTML(dados.titulo)}</b>" adicionada com sucesso!`, teclaMenuTarefas());
+  return finalizarAcao(supabaseAdmin, chatId, messageId, `✅ Tarefa "<b>${escapeHTML(dados.titulo)}</b>" adicionada com sucesso!`);
 }
 
 // ---------------------------------------------------------
@@ -476,11 +485,11 @@ async function listarTarefasPorMateria(supabaseAdmin, chatId, messageId, usuario
   }
 
   if (!tarefas || tarefas.length === 0) {
-    return editarMensagem(chatId, messageId, `Nenhuma tarefa pendente em <b>${escapeHTML(materia)}</b>. 🎉`, teclaListarTarefasMenu());
+    return finalizarAcao(supabaseAdmin, chatId, messageId, `Nenhuma tarefa pendente em <b>${escapeHTML(materia)}</b>. 🎉`);
   }
 
   const texto = [`📚 <b>${escapeHTML(materia)}</b>`, '', ...tarefas.map(formatarLinhaTarefa)].join('\n');
-  return editarMensagem(chatId, messageId, texto, teclaListarTarefasMenu());
+  return finalizarAcao(supabaseAdmin, chatId, messageId, texto);
 }
 
 async function listarTodasTarefas(supabaseAdmin, chatId, messageId, usuario) {
@@ -496,7 +505,7 @@ async function listarTodasTarefas(supabaseAdmin, chatId, messageId, usuario) {
   }
 
   if (!tarefas || tarefas.length === 0) {
-    return editarMensagem(chatId, messageId, 'Nenhuma tarefa pendente. 🎉', teclaListarTarefasMenu());
+    return finalizarAcao(supabaseAdmin, chatId, messageId, 'Nenhuma tarefa pendente. 🎉');
   }
 
   const grupos = new Map();
@@ -513,7 +522,7 @@ async function listarTodasTarefas(supabaseAdmin, chatId, messageId, usuario) {
     partes.push('');
   }
 
-  return editarMensagem(chatId, messageId, partes.join('\n').trim(), teclaListarTarefasMenu());
+  return finalizarAcao(supabaseAdmin, chatId, messageId, partes.join('\n').trim());
 }
 
 // ---------------------------------------------------------
@@ -608,7 +617,7 @@ async function executarFinalizarTarefa(supabaseAdmin, chatId, messageId, usuario
     return editarMensagem(chatId, messageId, '❌ Não consegui concluir essa tarefa.', teclaMenuTarefas());
   }
 
-  return editarMensagem(chatId, messageId, `🎉 Tarefa "<b>${escapeHTML(data.titulo)}</b>" concluída!`, teclaMenuTarefas());
+  return finalizarAcao(supabaseAdmin, chatId, messageId, `🎉 Tarefa "<b>${escapeHTML(data.titulo)}</b>" concluída!`);
 }
 
 // ---------------------------------------------------------
