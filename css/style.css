@@ -12,7 +12,7 @@
   --text-muted: #6B7280;
   --danger: #EF4444;
   --success: #22C55E;
-  --warning: #F59E0B;.menu-toggle
+  --warning: #F59E0B;
 
   --radius: 12px;
   --radius-sm: 8px;
@@ -31,11 +31,6 @@
 
 html, body {
   height: 100%;
-}
-
-
-.mobile-toggle {
-  display: none;
 }
 
 body {
@@ -101,6 +96,12 @@ img { max-width: 100%; display: block; }
   padding: 24px 20px;
   font-weight: 700;
   font-size: 17px;
+}
+
+.sidebar__brand-logo {
+  height: 34px;
+  width: auto;
+  display: block;
 }
 
 .sidebar__brand-icon {
@@ -307,6 +308,9 @@ img { max-width: 100%; display: block; }
 
 /* ---------- MOBILE ---------- */
 
+.mobile-toggle {
+  display: none;
+}
 
 @media (max-width: 900px) {
   .sidebar {
@@ -361,6 +365,12 @@ img { max-width: 100%; display: block; }
   gap: 10px;
   justify-content: center;
   margin-bottom: 24px;
+}
+
+.auth-brand-logo {
+  height: 42px;
+  width: auto;
+  display: block;
 }
 
 .auth-title {
