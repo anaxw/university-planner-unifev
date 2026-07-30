@@ -283,6 +283,55 @@
         .item-row__actions {
           margin-left: auto;
         }
+
+        /* Lista de tarefas: título/matéria ocupam a linha toda,
+           badge + ícones de ação ganham uma segunda linha própria,
+           com espaço, em vez de espremer tudo à direita */
+        #lista-tarefas .item-row {
+          display: grid;
+          grid-template-columns: auto auto 1fr auto;
+          grid-template-areas:
+            "checkbox color main   main"
+            ".        .     badge  actions";
+          column-gap: 10px;
+          row-gap: 10px;
+          align-items: start;
+        }
+
+        #lista-tarefas .checkbox {
+          grid-area: checkbox;
+          margin-top: 2px;
+        }
+
+        #lista-tarefas .item-row__color {
+          grid-area: color;
+          align-self: stretch;
+        }
+
+        #lista-tarefas .item-row__main {
+          grid-area: main;
+          min-width: 0;
+        }
+
+        #lista-tarefas .item-row > .badge {
+          grid-area: badge;
+          justify-self: start;
+          align-self: center;
+          margin-top: 6px;
+          padding-top: 8px;
+          border-top: 1px solid var(--gray-light);
+        }
+
+        #lista-tarefas .item-row__actions {
+          grid-area: actions;
+          justify-self: end;
+          align-self: center;
+          margin-left: 0;
+          margin-top: 6px;
+          padding-top: 8px;
+          border-top: 1px solid var(--gray-light);
+          gap: 2px;
+        }
       }
       
       @media (max-width: 480px) {
