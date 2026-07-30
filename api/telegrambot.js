@@ -1,14 +1,3 @@
-// =========================================================
-// TELEGRAM BOT — Menus interativos (roteirinho de botões)
-// =========================================================
-// Este módulo concentra toda a lógica de navegação do bot.
-// É chamado pelo /api/telegram-webhook.js a cada update recebido.
-//
-// Como funções serverless não têm memória entre uma mensagem e
-// outra, o "em que tela o usuário está" fica salvo na tabela
-// public.bot_estado (ver sql/migracao_bot_menu.sql).
-// =========================================================
-
 const TOKEN = () => process.env.TELEGRAM_BOT_TOKEN;
 
 // ---------------------------------------------------------
