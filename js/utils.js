@@ -3,8 +3,21 @@
 // =========================================================
 
 const CORES_MATERIA = [
-  '#4F7DF3', '#22C55E', '#F59E0B', '#EF4444',
-  '#A855F7', '#EC4899', '#14B8A6', '#6366F1',
+  '#E53935', // Vermelho
+  '#FB8C00', // Laranja
+  '#F9A825', // Âmbar
+  '#FDD835', // Amarelo
+  '#9CCC65', // Verde-limão
+  '#43A047', // Verde
+  '#00897B', // Verde-azulado (teal)
+  '#00ACC1', // Ciano
+  '#1E88E5', // Azul
+  '#3949AB', // Índigo
+  '#8E24AA', // Roxo
+  '#D81B60', // Rosa/magenta
+  '#6D4C41', // Marrom
+  '#546E7A', // Cinza-azulado (slate)
+  '#827717', // Verde-oliva
 ];
 
 const DIAS_SEMANA = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
