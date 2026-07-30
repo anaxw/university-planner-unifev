@@ -49,6 +49,52 @@
     position: relative;
     z-index: 1;
   }
+
+  .password-field {
+    position: relative;
+  }
+
+  .password-field .input {
+    padding-right: 44px;
+  }
+
+  .password-toggle {
+    position: absolute;
+    top: 50%;
+    right: 10px;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    padding: 4px;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: #6b7280;
+    line-height: 0;
+  }
+
+  .password-toggle:hover {
+    color: #374151;
+  }
+
+  .password-toggle svg {
+    width: 20px;
+    height: 20px;
+  }
+
+  .password-toggle .icon-eye-off {
+    display: none;
+  }
+
+  .password-toggle.is-visible .icon-eye {
+    display: none;
+  }
+
+  .password-toggle.is-visible .icon-eye-off {
+    display: block;
+  }
 </style>
 </head>
 <body data-page="login">
@@ -72,7 +118,13 @@
           </div>
           <div class="field">
             <label for="login-senha">Senha</label>
-            <input class="input" type="password" id="login-senha" required autocomplete="current-password">
+            <div class="password-field">
+              <input class="input" type="password" id="login-senha" required autocomplete="current-password">
+              <button type="button" class="password-toggle" data-target="login-senha" aria-label="Mostrar senha" aria-pressed="false">
+                <svg class="icon-eye" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                <svg class="icon-eye-off" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.94 10.94 0 0 1 12 20c-7 0-11-8-11-8a19.9 19.9 0 0 1 5.06-6.06M9.9 4.24A10.4 10.4 0 0 1 12 4c7 0 11 8 11 8a19.9 19.9 0 0 1-4.15 5.53M14.12 14.12a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>
+              </button>
+            </div>
           </div>
           <div class="auth-forgot">
             <button type="button" id="link-esqueci-senha">Esqueci minha senha</button>
@@ -101,7 +153,13 @@
           </div>
           <div class="field">
             <label for="cadastro-senha">Senha</label>
-            <input class="input" type="password" id="cadastro-senha" required minlength="6" autocomplete="new-password">
+            <div class="password-field">
+              <input class="input" type="password" id="cadastro-senha" required minlength="6" autocomplete="new-password">
+              <button type="button" class="password-toggle" data-target="cadastro-senha" aria-label="Mostrar senha" aria-pressed="false">
+                <svg class="icon-eye" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                <svg class="icon-eye-off" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.94 10.94 0 0 1 12 20c-7 0-11-8-11-8a19.9 19.9 0 0 1 5.06-6.06M9.9 4.24A10.4 10.4 0 0 1 12 4c7 0 11 8 11 8a19.9 19.9 0 0 1-4.15 5.53M14.12 14.12a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>
+              </button>
+            </div>
           </div>
           <button type="submit" class="btn btn-primary w-full">Criar conta</button>
         </form>
@@ -149,6 +207,22 @@
         s.style.animationDelay = (Math.random() * 5).toFixed(2) + 's';
         layer.appendChild(s);
       }
+    })();
+  </script>
+  <script>
+    (function () {
+      var toggles = document.querySelectorAll('.password-toggle');
+      toggles.forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          var input = document.getElementById(btn.getAttribute('data-target'));
+          if (!input) return;
+          var isVisible = input.type === 'text';
+          input.type = isVisible ? 'password' : 'text';
+          btn.classList.toggle('is-visible', !isVisible);
+          btn.setAttribute('aria-pressed', String(!isVisible));
+          btn.setAttribute('aria-label', isVisible ? 'Mostrar senha' : 'Ocultar senha');
+        });
+      });
     })();
   </script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
