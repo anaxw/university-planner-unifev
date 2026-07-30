@@ -1,17 +1,4 @@
-// =========================================================
-// WEBHOOK DO TELEGRAM
-// Recebe as mensagens enviadas ao bot e vincula a conta do
-// usuário (telegram_chat_id) quando ele manda /start <codigo>.
-//
-// Configure o webhook UMA VEZ, abrindo esta URL no navegador
-// (troque SEU_TOKEN e SEU_DOMINIO):
-//
-//   https://api.telegram.org/botSEU_TOKEN/setWebhook?url=https://SEU_DOMINIO/api/telegram-webhook
-//
-// Opcionalmente, para garantir que só o Telegram consiga chamar
-// este endpoint, defina TELEGRAM_WEBHOOK_SECRET nas variáveis de
-// ambiente e adicione &secret_token=SEU_SEGREDO na URL acima.
-// =========================================================
+
 
 const { createClient } = require('@supabase/supabase-js');
 
