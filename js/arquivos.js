@@ -31,6 +31,14 @@ const fileMateria = document.getElementById('file-materia');
   ]);
 
   setupEventListeners();
+
+  // Se veio de "Ver todos" na página de matérias (?materia=ID), pré-filtra
+  const params = new URLSearchParams(window.location.search);
+  const materiaParam = params.get('materia');
+  if (materiaParam) {
+    filterMateria.value = materiaParam;
+    aplicarFiltros();
+  }
 })();
 
 // =========================================================
