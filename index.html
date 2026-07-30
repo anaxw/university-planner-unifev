@@ -6,9 +6,291 @@
 <title>Entrar — Rotina Faculdade</title>
 <link rel="stylesheet" href="css/style.css">
 <link rel="stylesheet" href="css/components.css">
-</head>
-<body data-page="login">
+<style>
+  /* ESTILOS DA ANIMAÇÃO DO ROBOZINHO */
+  .robot-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    z-index: 9999;
+    transition: opacity 0.8s ease, transform 0.8s ease;
+  }
 
+  .robot-container.hidden {
+    opacity: 0;
+    transform: scale(1.1);
+    pointer-events: none;
+  }
+
+  .robot {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    animation: floatRobot 2s ease-in-out infinite;
+  }
+
+  .robot-body {
+    position: relative;
+    width: 120px;
+    height: 140px;
+    background: linear-gradient(145deg, #4a90d9, #357abd);
+    border-radius: 30px 30px 20px 20px;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* Cabeça do robô */
+  .robot-head {
+    position: absolute;
+    top: -60px;
+    width: 80px;
+    height: 70px;
+    background: linear-gradient(145deg, #4a90d9, #357abd);
+    border-radius: 20px 20px 10px 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 15px;
+    box-shadow: 0 -5px 15px rgba(0,0,0,0.2);
+  }
+
+  .robot-eye {
+    width: 14px;
+    height: 14px;
+    background: #fff;
+    border-radius: 50%;
+    animation: blink 3s ease-in-out infinite;
+    box-shadow: 0 0 20px rgba(255,255,255,0.5);
+  }
+
+  .robot-eye::after {
+    content: '';
+    display: block;
+    width: 6px;
+    height: 6px;
+    background: #2d3748;
+    border-radius: 50%;
+    margin: 4px auto 0;
+  }
+
+  .robot-antenna {
+    position: absolute;
+    top: -25px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 4px;
+    height: 25px;
+    background: #f6ad55;
+    border-radius: 2px;
+  }
+
+  .robot-antenna::after {
+    content: '';
+    position: absolute;
+    top: -8px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 12px;
+    height: 12px;
+    background: #f6ad55;
+    border-radius: 50%;
+    animation: glowPulse 1.5s ease-in-out infinite;
+  }
+
+  /* Corpo do robô */
+  .robot-torso {
+    margin-top: 15px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+  }
+
+  .robot-screen {
+    width: 60px;
+    height: 35px;
+    background: #2d3748;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #48bb78;
+    font-size: 10px;
+    font-family: 'Courier New', monospace;
+    letter-spacing: 2px;
+    overflow: hidden;
+    box-shadow: inset 0 0 10px rgba(0,0,0,0.5);
+  }
+
+  .robot-screen-text {
+    animation: typeText 2s steps(10) infinite;
+  }
+
+  .robot-buttons {
+    display: flex;
+    gap: 8px;
+    margin-top: 5px;
+  }
+
+  .robot-btn {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+  }
+
+  .robot-btn.green { background: #48bb78; }
+  .robot-btn.red { background: #fc8181; }
+  .robot-btn.blue { background: #63b3ed; }
+
+  .robot-arms {
+    position: absolute;
+    top: 20px;
+    display: flex;
+    justify-content: space-between;
+    width: 160px;
+  }
+
+  .robot-arm {
+    width: 12px;
+    height: 60px;
+    background: linear-gradient(145deg, #4a90d9, #357abd);
+    border-radius: 6px;
+    animation: waveArm 2s ease-in-out infinite;
+  }
+
+  .robot-arm.left {
+    transform-origin: top center;
+    animation-delay: 0.5s;
+  }
+
+  .robot-arm.right {
+    transform-origin: top center;
+  }
+
+  /* Pernas do robô */
+  .robot-legs {
+    display: flex;
+    gap: 20px;
+    margin-top: 5px;
+  }
+
+  .robot-leg {
+    width: 20px;
+    height: 30px;
+    background: linear-gradient(145deg, #4a90d9, #357abd);
+    border-radius: 0 0 10px 10px;
+  }
+
+  /* Carregando texto */
+  .loading-text {
+    color: white;
+    margin-top: 30px;
+    font-size: 18px;
+    font-weight: 300;
+    letter-spacing: 3px;
+    animation: pulseText 1.5s ease-in-out infinite;
+  }
+
+  /* Animações */
+  @keyframes floatRobot {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-15px); }
+  }
+
+  @keyframes blink {
+    0%, 90%, 100% { transform: scaleY(1); }
+    95% { transform: scaleY(0.1); }
+  }
+
+  @keyframes glowPulse {
+    0%, 100% { box-shadow: 0 0 10px rgba(246, 173, 85, 0.5); }
+    50% { box-shadow: 0 0 30px rgba(246, 173, 85, 0.8); }
+  }
+
+  @keyframes waveArm {
+    0%, 100% { transform: rotate(0deg); }
+    50% { transform: rotate(20deg); }
+  }
+
+  @keyframes typeText {
+    0% { content: 'INICIANDO...'; }
+    33% { content: 'CARREGANDO...'; }
+    66% { content: 'PRONTO!'; }
+  }
+
+  @keyframes pulseText {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+  }
+
+  /* Transição para a tela de login */
+  .auth-page {
+    opacity: 0;
+    animation: fadeInPage 0.8s ease 2.5s forwards;
+  }
+
+  @keyframes fadeInPage {
+    to { opacity: 1; }
+  }
+
+  /* Ajuste para quando o robô sumir */
+  .robot-container.hidden + .auth-page {
+    opacity: 1;
+  }
+</style>
+</head>
+<body>
+
+  <!-- ROBOZINHO DE CARREGAMENTO -->
+  <div class="robot-container" id="robotLoader">
+    <div class="robot">
+      <div class="robot-body">
+        <!-- Cabeça -->
+        <div class="robot-head">
+          <div class="robot-eye"></div>
+          <div class="robot-eye"></div>
+          <div class="robot-antenna"></div>
+        </div>
+
+        <!-- Braços -->
+        <div class="robot-arms">
+          <div class="robot-arm left"></div>
+          <div class="robot-arm right"></div>
+        </div>
+
+        <!-- Corpo -->
+        <div class="robot-torso">
+          <div class="robot-screen">
+            <span class="robot-screen-text">INICIANDO...</span>
+          </div>
+          <div class="robot-buttons">
+            <div class="robot-btn green"></div>
+            <div class="robot-btn red"></div>
+            <div class="robot-btn blue"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Pernas -->
+      <div class="robot-legs">
+        <div class="robot-leg"></div>
+        <div class="robot-leg"></div>
+      </div>
+
+      <div class="loading-text">CARREGANDO...</div>
+    </div>
+  </div>
+
+  <!-- TELA DE LOGIN -->
   <div class="auth-page">
     <div class="auth-card">
       <div class="auth-brand">
@@ -17,9 +299,9 @@
 
       <!-- PAINEL: LOGIN -->
       <div id="painel-login">
-        
         <div class="auth-title">Bem-vindo de volta</div>
         <div class="auth-subtitle">Entre para organizar sua rotina da faculdade</div>
+
         <form id="form-login">
           <div class="field">
             <label for="login-email">E-mail</label>
@@ -92,5 +374,20 @@
   <script src="js/utils.js"></script>
   <script src="js/auth.js"></script>
   <script src="js/favicon.js"></script>
+  
+  <script>
+    // REMOVER ROBOZINHO APÓS 3 SEGUNDOS
+    document.addEventListener('DOMContentLoaded', function() {
+      setTimeout(function() {
+        const robotLoader = document.getElementById('robotLoader');
+        robotLoader.classList.add('hidden');
+        
+        // Remove completamente após a animação
+        setTimeout(function() {
+          robotLoader.style.display = 'none';
+        }, 800);
+      }, 3000);
+    });
+  </script>
 </body>
 </html>
