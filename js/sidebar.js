@@ -45,8 +45,7 @@ function renderizarSidebar(paginaAtiva, usuario) {
     <div class="sidebar__overlay" id="sidebar-overlay"></div>
     <aside class="sidebar" id="sidebar">
       <div class="sidebar__brand">
-        <div class="sidebar__brand-icon">🎓</div>
-        <span>Rotina Faculdade</span>
+        <img src="img/logo_completo.png" alt="Rotina Faculdade" class="sidebar__brand-logo">
       </div>
       <nav class="sidebar__nav">
         ${linksHTML}
