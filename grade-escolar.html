@@ -11,41 +11,12 @@
    ESTILOS DA GRADE ESCOLAR
    ========================================================= */
 
-.grade-legenda {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  margin-bottom: 18px;
-}
-
-.grade-legenda__item {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 13px;
-  border: 1px solid var(--gray-light);
-  border-radius: 8px;
-  padding: 5px 10px;
-  background: var(--bg);
-}
-
-.grade-legenda__dot {
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  flex-shrink: 0;
-}
-
-.grade-legenda__item .grade-badge {
+.grade-badge {
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  font-size: 10px;
-  font-weight: 600;
-  padding: 2px 8px;
-  border-radius: 6px;
-  margin-left: 4px;
-  vertical-align: middle;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
 }
 
 .grade-badge.presencial {
@@ -182,6 +153,31 @@
   margin-top: 1px;
 }
 
+.grade-bloco__professor {
+  font-size: 9px;
+  opacity: 0.85;
+  margin-top: 1px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.grade-bloco .grade-badge {
+  margin-top: 4px;
+  font-size: 9px;
+  font-weight: 600;
+  padding: 2px 6px;
+  border-radius: 5px;
+  background: rgba(255, 255, 255, 0.28);
+  color: #fff;
+  width: fit-content;
+}
+
+.grade-bloco .grade-badge svg {
+  width: 10px;
+  height: 10px;
+}
+
 /* =========================================================
    VERSÃO MOBILE — dias empilhados (um embaixo do outro)
    ========================================================= */
@@ -261,6 +257,15 @@
   font-size: 11px;
   color: var(--text-muted);
   margin-top: 1px;
+}
+
+.grade-item-mobile__professor {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-top: 1px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .grade-item-mobile .grade-badge {
@@ -358,24 +363,9 @@
   .grade-dias-mobile {
     display: flex;
   }
-
-  .grade-legenda__item {
-    font-size: 12px;
-    padding: 4px 8px;
-  }
 }
 
 @media (max-width: 480px) {
-  .grade-legenda__item {
-    font-size: 11px;
-    padding: 3px 6px;
-  }
-
-  .grade-legenda__dot {
-    width: 8px;
-    height: 8px;
-  }
-
   .grade-dia-card__nome {
     font-size: 13px;
   }
@@ -418,8 +408,6 @@
           </div>
         </div>
       </div>
-
-      <div class="grade-legenda" id="grade-legenda"></div>
 
       <div class="card">
         <div id="grade-horaria">
