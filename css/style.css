@@ -12,7 +12,7 @@
   --text-muted: #6B7280;
   --danger: #EF4444;
   --success: #22C55E;
-  --warning: #F59E0B;
+  --warning: #F59E0B;.menu-toggle
 
   --radius: 12px;
   --radius-sm: 8px;
@@ -31,6 +31,11 @@
 
 html, body {
   height: 100%;
+}
+
+
+.mobile-toggle {
+  display: none;
 }
 
 body {
@@ -302,9 +307,6 @@ img { max-width: 100%; display: block; }
 
 /* ---------- MOBILE ---------- */
 
-.mobile-toggle {
-  display: none;
-}
 
 @media (max-width: 900px) {
   .sidebar {
