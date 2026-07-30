@@ -527,9 +527,33 @@ async function excluirMateria(id) {
 // DETALHE DA MATÉRIA
 // =========================================================
 
+function posicionarDetalheAposCard(id) {
+  const container = document.getElementById('lista-materias');
+  const detalheEl = document.getElementById('detalhe-materia');
+  const cards = Array.from(container.querySelectorAll('.materia-card'));
+  const idx = cards.findIndex(c => c.dataset.id === id);
+
+  // Se não achou o card (ex: veio direto por link com ?id=), deixa o
+  // painel no final da lista, como antes.
+  if (idx === -1) {
+    container.insertAdjacentElement('afterend', detalheEl);
+    return;
+  }
+
+  // Descobre quantas colunas o grid tem no momento (3 no desktop, 1 no
+  // celular) para inserir o painel logo após o ÚLTIMO card da mesma
+  // linha do card clicado — assim ele aparece imediatamente abaixo,
+  // ocupando a linha inteira, sem precisar rolar a página para baixo.
+  const colunas = getComputedStyle(container).gridTemplateColumns.split(' ').length || 1;
+  const fimDaLinha = Math.min(idx - (idx % colunas) + colunas - 1, cards.length - 1);
+  cards[fimDaLinha].insertAdjacentElement('afterend', detalheEl);
+}
+
 async function abrirDetalheMateria(id) {
   const materia = MATERIAS_CACHE.find(m => m.id === id) || await buscarMateriaPorId(id);
   if (!materia) return;
+
+  posicionarDetalheAposCard(id);
 
   document.getElementById('detalhe-materia').classList.remove('hidden');
   document.getElementById('detalhe-cor').style.background = materia.cor;
@@ -540,7 +564,7 @@ async function abrirDetalheMateria(id) {
   document.getElementById('detalhe-info').textContent =
     [`${tipoIcon} ${tipoInfo.label}`, materia.professor, horarioTexto].filter(Boolean).join(' · ');
 
-  document.getElementById('detalhe-materia').scrollIntoView({ behavior: 'smooth' });
+  document.getElementById('detalhe-materia').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 
   const [{ data: tarefas }, { data: anotacoes }] = await Promise.all([
     supabaseClient.from('tarefas').select('*').eq('materia_id', id).eq('user_id', USUARIO_ATUAL.id)
