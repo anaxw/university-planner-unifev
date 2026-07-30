@@ -1,0 +1,524 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Tarefas — Rotina Faculdade</title>
+    <link rel="stylesheet" href="css/style.css" />
+    <link rel="stylesheet" href="css/components.css" />
+    <style>
+      /* Estilos específicos da página de tarefas */
+      .item-row--atrasada {
+        border-left: 3px solid #ef4444;
+      }
+      
+      .item-row--concluida {
+        opacity: 0.7;
+      }
+      
+      .item-row--concluida .item-row__title {
+        text-decoration: line-through;
+        color: var(--text-muted);
+      }
+      
+      .checkbox {
+        width: 20px;
+        height: 20px;
+        border: 2px solid var(--gray-light);
+        border-radius: 4px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        transition: all var(--transition);
+        background: var(--bg);
+      }
+      
+      .checkbox:hover {
+        border-color: var(--primary);
+        background: rgba(79, 125, 243, 0.05);
+      }
+      
+      .checkbox.checked {
+        background: var(--primary);
+        border-color: var(--primary);
+      }
+      
+      .checkbox.checked svg {
+        width: 14px;
+        height: 14px;
+        color: white;
+        stroke: white;
+      }
+      
+      .checkbox svg {
+        width: 14px;
+        height: 14px;
+        color: transparent;
+        stroke: transparent;
+        transition: all var(--transition);
+      }
+      
+      .item-row__actions {
+        display: flex;
+        gap: 4px;
+        flex-shrink: 0;
+      }
+      
+      .item-row__actions .btn-icon {
+        width: 32px;
+        height: 32px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 6px;
+        border: none;
+        background: transparent;
+        color: var(--text-muted);
+        cursor: pointer;
+        transition: background var(--transition), color var(--transition);
+      }
+      
+      .item-row__actions .btn-icon:hover {
+        background: var(--gray-light);
+        color: var(--text);
+      }
+      
+      .item-row__actions .btn-icon.btn-edit:hover {
+        color: var(--primary);
+        background: rgba(79, 125, 243, 0.08);
+      }
+      
+      .item-row__actions .btn-icon.btn-delete:hover {
+        color: #dc2626;
+        background: rgba(220, 38, 38, 0.08);
+      }
+      
+      .item-row__actions .btn-icon.btn-details:hover {
+        color: #8b5cf6;
+        background: rgba(139, 92, 246, 0.08);
+      }
+      
+      .item-row__actions .btn-icon svg {
+        width: 16px;
+        height: 16px;
+      }
+      
+      /* Tabs */
+      .tabs {
+        display: flex;
+        gap: 4px;
+        background: var(--gray-light);
+        padding: 4px;
+        border-radius: var(--radius);
+      }
+      
+      .tabs .tab {
+        padding: 6px 16px;
+        border: none;
+        border-radius: 6px;
+        background: transparent;
+        color: var(--text-muted);
+        font-size: 13px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all var(--transition);
+      }
+      
+      .tabs .tab:hover {
+        color: var(--text);
+      }
+      
+      .tabs .tab.active {
+        background: var(--card);
+        color: var(--text);
+        box-shadow: var(--shadow);
+      }
+      
+      /* Badge */
+      .badge {
+        display: inline-flex;
+        align-items: center;
+        padding: 2px 10px;
+        border-radius: 999px;
+        font-size: 10px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+        flex-shrink: 0;
+      }
+      
+      .badge-danger {
+        background: #fee2e2;
+        color: #dc2626;
+      }
+      
+      .badge-warning {
+        background: #fef3c7;
+        color: #d97706;
+      }
+      
+      .badge-success {
+        background: #d1fae5;
+        color: #059669;
+      }
+      
+      .badge-info {
+        background: #dbeafe;
+        color: #2563eb;
+      }
+      
+      /* Status indicators */
+      .status-atrasada {
+        color: #ef4444;
+        font-size: 11px;
+        font-weight: 600;
+      }
+      
+      .status-proximo {
+        color: #f59e0b;
+        font-size: 11px;
+        font-weight: 600;
+      }
+      
+      /* Anexos */
+      #lista-anexos {
+        max-height: 200px;
+        overflow-y: auto;
+        border: 2px dashed var(--gray-light);
+        border-radius: var(--radius);
+        padding: 8px;
+        min-height: 60px;
+        transition: border-color var(--transition), background var(--transition);
+      }
+      
+      #lista-anexos .item-row {
+        padding: 6px 8px;
+        margin-bottom: 4px;
+      }
+      
+      #lista-anexos .item-row:last-child {
+        margin-bottom: 0;
+      }
+      
+      #lista-anexos .item-row__title {
+        font-size: 13px;
+      }
+      
+      #lista-anexos .item-row__title a {
+        color: var(--primary);
+        text-decoration: none;
+      }
+      
+      #lista-anexos .item-row__title a:hover {
+        text-decoration: underline;
+      }
+      
+      #lista-anexos .btn-remover-anexo,
+      #lista-anexos .btn-remover-pendente {
+        width: 28px;
+        height: 28px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: none;
+        border-radius: 4px;
+        background: transparent;
+        color: var(--text-muted);
+        cursor: pointer;
+        transition: all var(--transition);
+      }
+      
+      #lista-anexos .btn-remover-anexo:hover,
+      #lista-anexos .btn-remover-pendente:hover {
+        background: rgba(220, 38, 38, 0.08);
+        color: #dc2626;
+      }
+      
+      #lista-anexos .btn-remover-anexo svg,
+      #lista-anexos .btn-remover-pendente svg {
+        width: 14px;
+        height: 14px;
+      }
+      
+      .mt-8 {
+        margin-top: 8px;
+      }
+      
+      /* Responsividade */
+      @media (max-width: 768px) {
+        .flex.items-center.justify-between {
+          flex-direction: column;
+          align-items: stretch !important;
+        }
+        
+        .flex.items-center.gap-8 {
+          flex-wrap: wrap;
+        }
+        
+        .flex.items-center.gap-8 .select {
+          flex: 1;
+          min-width: 140px;
+        }
+        
+        .tabs {
+          overflow-x: auto;
+        }
+        
+        .tabs .tab {
+          white-space: nowrap;
+          padding: 6px 12px;
+          font-size: 12px;
+        }
+        
+        .field-row {
+          grid-template-columns: 1fr;
+        }
+        
+        .item-row {
+          flex-wrap: wrap;
+        }
+        
+        .item-row__actions {
+          margin-left: auto;
+        }
+      }
+      
+      @media (max-width: 480px) {
+        .topbar__title {
+          font-size: 18px;
+        }
+        
+        .topbar__subtitle {
+          font-size: 12px;
+        }
+        
+        .item-row {
+          padding: 8px 10px;
+        }
+        
+        .item-row__title {
+          font-size: 13px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="app">
+      <div id="sidebar-root"></div>
+
+      <main class="main">
+        <div class="topbar">
+          <div class="flex items-center gap-12">
+            <button class="btn-icon" id="mobile-toggle" aria-label="Abrir menu">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="3" y1="12" x2="21" y2="12"/>
+                <line x1="3" y1="6" x2="21" y2="6"/>
+                <line x1="3" y1="18" x2="21" y2="18"/>
+              </svg>
+            </button>
+            <div>
+              <div class="topbar__title">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:middle;margin-right:6px;">
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                  <polyline points="14 2 14 8 20 8"/>
+                  <line x1="16" y1="13" x2="8" y2="13"/>
+                  <line x1="16" y1="17" x2="8" y2="17"/>
+                </svg>
+                Tarefas
+              </div>
+              <div class="topbar__subtitle">
+                Suas tarefas e provas em um só lugar
+              </div>
+            </div>
+          </div>
+          <div class="topbar__actions">
+            <button class="btn btn-primary" id="btn-nova-tarefa">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="12" y1="5" x2="12" y2="19"/>
+                <line x1="5" y1="12" x2="19" y2="12"/>
+              </svg>
+              Nova tarefa
+            </button>
+          </div>
+        </div>
+
+        <div
+          class="flex items-center justify-between"
+          style="flex-wrap: wrap; gap: 12px"
+        >
+          <div class="tabs" id="tabs-status">
+            <button class="tab" data-filtro="todas">Todas</button>
+            <button class="tab active" data-filtro="pendente">Pendentes</button>
+            <button class="tab" data-filtro="concluida">Concluídas</button>
+          </div>
+
+          <div class="flex items-center gap-8">
+            <select class="select" id="ordenar-tarefas" style="max-width: 180px">
+              <option value="data">Ordenar por data</option>
+              <option value="prioridade">Ordenar por prioridade</option>
+            </select>
+
+            <select class="select" id="filtro-materia" style="max-width: 220px">
+              <option value="">Todas as matérias</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="card" style="margin-top: 16px">
+          <div class="item-list" id="lista-tarefas">
+            <div class="loading-spinner"></div>
+          </div>
+        </div>
+      </main>
+    </div>
+
+    <!-- MODAL: criar/editar tarefa -->
+    <div class="modal-overlay" id="modal-tarefa">
+      <div class="modal">
+        <div class="modal-header">
+          <h3 id="modal-tarefa-titulo">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:middle;margin-right:6px;">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+              <polyline points="14 2 14 8 20 8"/>
+              <line x1="16" y1="13" x2="8" y2="13"/>
+              <line x1="16" y1="17" x2="8" y2="17"/>
+            </svg>
+            Nova tarefa
+          </h3>
+          <button class="modal-close" onclick="fecharModal('modal-tarefa')">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="18" y1="6" x2="6" y2="18"/>
+              <line x1="6" y1="6" x2="18" y2="18"/>
+            </svg>
+          </button>
+        </div>
+        <form id="form-tarefa">
+          <input type="hidden" id="tarefa-id" />
+          <div class="field">
+            <label for="tarefa-titulo">Título *</label>
+            <input
+              class="input"
+              id="tarefa-titulo"
+              required
+              placeholder="Ex: Entregar lista de exercícios"
+            />
+          </div>
+          <div class="field">
+            <label for="tarefa-descricao">Descrição</label>
+            <textarea
+              class="textarea"
+              id="tarefa-descricao"
+              placeholder="Detalhes da tarefa (opcional)"
+              rows="3"
+            ></textarea>
+          </div>
+          <div class="field">
+            <label for="tarefa-materia">Matéria</label>
+            <select class="select" id="tarefa-materia">
+              <option value="">Nenhuma</option>
+            </select>
+          </div>
+          <div class="field-row">
+            <div class="field">
+              <label for="tarefa-tipo">Tipo</label>
+              <select class="select" id="tarefa-tipo">
+                <option value="tarefa">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:middle;margin-right:4px;">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                    <polyline points="14 2 14 8 20 8"/>
+                    <line x1="16" y1="13" x2="8" y2="13"/>
+                    <line x1="16" y1="17" x2="8" y2="17"/>
+                  </svg>
+                  Tarefa
+                </option>
+                <option value="prova">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:middle;margin-right:4px;">
+                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                    <polyline points="9 12 11 14 15 10"/>
+                  </svg>
+                  Prova
+                </option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="tarefa-data">Data de entrega</label>
+              <input class="input" type="date" id="tarefa-data" />
+            </div>
+            <div class="field">
+              <label for="tarefa-hora">Horário</label>
+              <input class="input" type="time" id="tarefa-hora" />
+            </div>
+          </div>
+          <div class="field">
+            <label for="tarefa-prioridade">Prioridade</label>
+            <select class="select" id="tarefa-prioridade">
+              <option value="baixa">
+                <span style="color:#059669;">●</span> Baixa
+              </option>
+              <option value="media" selected>
+                <span style="color:#d97706;">●</span> Média
+              </option>
+              <option value="alta">
+                <span style="color:#dc2626;">●</span> Alta
+              </option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label>Anexos</label>
+            <div class="item-list" id="lista-anexos">
+              <div class="empty-state" style="padding: 16px;">
+                <p style="color: #6B7280; font-size: 14px;">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:middle;margin-right:6px;">
+                    <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/>
+                  </svg>
+                  Nenhum anexo
+                </p>
+                <p style="color: #9CA3AF; font-size: 12px;">Arraste arquivos ou clique em "Adicionar arquivo"</p>
+              </div>
+            </div>
+            <input type="file" id="input-anexo" multiple style="display: none" />
+            <button
+              type="button"
+              class="btn btn-secondary btn-sm mt-8"
+              id="btn-adicionar-anexo"
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:middle;margin-right:4px;">
+                <line x1="12" y1="5" x2="12" y2="19"/>
+                <line x1="5" y1="12" x2="19" y2="12"/>
+              </svg>
+              Adicionar arquivo
+            </button>
+          </div>
+
+          <div class="modal-actions">
+            <button
+              type="button"
+              class="btn btn-secondary"
+              onclick="fecharModal('modal-tarefa')"
+            >
+              Cancelar
+            </button>
+            <button type="submit" class="btn btn-primary">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:middle;margin-right:4px;">
+                <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
+                <polyline points="17 21 17 13 7 13 7 21"/>
+                <polyline points="7 3 7 8 15 8"/>
+              </svg>
+              Salvar
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/supabaseClient.js"></script>
+    <script src="js/utils.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/sidebar.js"></script>
+    <script src="js/tarefas.js"></script>
+  </body>
+</html>

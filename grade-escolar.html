@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Grade Escolar — Rotina Faculdade</title>
+<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/components.css">
+<style>
+/* =========================================================
+   ESTILOS DA GRADE ESCOLAR
+   ========================================================= */
+
+.grade-legenda {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 18px;
+}
+
+.grade-legenda__item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  border: 1px solid var(--gray-light);
+  border-radius: 8px;
+  padding: 5px 10px;
+  background: var(--bg);
+}
+
+.grade-legenda__dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.grade-legenda__item .grade-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 10px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 6px;
+  margin-left: 4px;
+  vertical-align: middle;
+}
+
+.grade-badge.presencial {
+  background: #e7f0ff;
+  color: #2d5bd4;
+}
+
+.grade-badge.ead {
+  background: #fff1e0;
+  color: #c07a10;
+}
+
+.grade-badge svg {
+  width: 12px;
+  height: 12px;
+}
+
+/* Grade wrap */
+.grade-wrap {
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  padding: 6px 2px;
+}
+
+.grade-wrap::-webkit-scrollbar {
+  height: 6px;
+}
+
+.grade-wrap::-webkit-scrollbar-track {
+  background: var(--gray-light);
+  border-radius: 3px;
+}
+
+.grade-wrap::-webkit-scrollbar-thumb {
+  background: var(--primary);
+  border-radius: 3px;
+}
+
+/* Eixo (horários) */
+.grade-eixo {
+  width: 50px;
+  flex-shrink: 0;
+  position: relative;
+  height: 560px;
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.grade-eixo span {
+  position: absolute;
+  transform: translateY(-50%);
+  right: 4px;
+  font-weight: 500;
+}
+
+/* Colunas */
+.grade-col {
+  flex: 1 1 0;
+  min-width: 120px;
+  position: relative;
+}
+
+.grade-col__header {
+  text-align: center;
+  font-weight: 700;
+  font-size: 13px;
+  margin-bottom: 6px;
+  color: var(--text);
+  padding: 4px 0;
+}
+
+.grade-col__body {
+  position: relative;
+  height: 560px;
+  border: 1px solid var(--gray-light);
+  border-radius: 10px;
+  background: var(--bg);
+  overflow: hidden;
+}
+
+/* Intervalo */
+.grade-intervalo {
+  position: absolute;
+  left: 0;
+  right: 0;
+  background: repeating-linear-gradient(45deg, #f1f2f5, #f1f2f5 6px, #e9eaee 6px, #e9eaee 12px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  color: var(--text-muted);
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Bloco de aula */
+.grade-bloco {
+  position: absolute;
+  left: 3px;
+  right: 3px;
+  border-radius: 8px;
+  padding: 6px 8px;
+  color: #fff;
+  font-size: 11px;
+  line-height: 1.3;
+  overflow: hidden;
+  cursor: pointer;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+  transition: transform var(--transition), box-shadow var(--transition);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.grade-bloco:hover {
+  transform: scale(1.02);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  z-index: 10;
+}
+
+.grade-bloco__nome {
+  font-weight: 700;
+  font-size: 11px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.grade-bloco__horario {
+  font-size: 9px;
+  opacity: 0.85;
+  margin-top: 1px;
+}
+
+/* Estado vazio */
+.grade-vazio {
+  padding: 40px 20px;
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 14px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.grade-vazio svg {
+  color: var(--gray-light);
+}
+
+.grade-vazio a {
+  color: var(--primary);
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.grade-vazio a:hover {
+  text-decoration: underline;
+}
+
+/* Loading spinner */
+.loading-spinner {
+  width: 32px;
+  height: 32px;
+  border: 3px solid var(--gray-light);
+  border-top-color: var(--primary);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  margin: 40px auto;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Topbar */
+#saudacao-grade {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+#saudacao-grade svg {
+  width: 20px;
+  height: 20px;
+  color: var(--primary);
+}
+
+/* Responsividade */
+@media (max-width: 768px) {
+  .grade-col {
+    min-width: 100px;
+  }
+  
+  .grade-eixo {
+    width: 40px;
+  }
+  
+  .grade-col__body {
+    height: 480px;
+  }
+  
+  .grade-eixo {
+    height: 480px;
+  }
+  
+  .grade-bloco {
+    padding: 4px 6px;
+    font-size: 10px;
+  }
+  
+  .grade-bloco__nome {
+    font-size: 10px;
+  }
+  
+  .grade-bloco__horario {
+    font-size: 8px;
+  }
+  
+  .grade-legenda__item {
+    font-size: 12px;
+    padding: 4px 8px;
+  }
+}
+
+@media (max-width: 480px) {
+  .grade-col {
+    min-width: 80px;
+  }
+  
+  .grade-eixo {
+    width: 34px;
+    font-size: 9px;
+  }
+  
+  .grade-col__body {
+    height: 400px;
+  }
+  
+  .grade-eixo {
+    height: 400px;
+  }
+  
+  .grade-col__header {
+    font-size: 11px;
+  }
+  
+  .grade-bloco {
+    padding: 3px 4px;
+    font-size: 8px;
+    left: 2px;
+    right: 2px;
+  }
+  
+  .grade-bloco__nome {
+    font-size: 8px;
+  }
+  
+  .grade-bloco__horario {
+    font-size: 7px;
+  }
+  
+  .grade-legenda__item {
+    font-size: 11px;
+    padding: 3px 6px;
+  }
+  
+  .grade-legenda__dot {
+    width: 8px;
+    height: 8px;
+  }
+  
+  .grade-intervalo {
+    font-size: 8px;
+  }
+}
+</style>
+</head>
+<body>
+
+  <div class="app">
+    <div id="sidebar-root"></div>
+
+    <main class="main">
+      <div class="topbar">
+        <div class="flex items-center gap-12">
+          <button class="btn-icon" id="mobile-toggle" aria-label="Abrir menu">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="3" y1="12" x2="21" y2="12"/>
+              <line x1="3" y1="6" x2="21" y2="6"/>
+              <line x1="3" y1="18" x2="21" y2="18"/>
+            </svg>
+          </button>
+          <div>
+            <div class="topbar__title" id="saudacao-grade">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="2" y="3" width="20" height="14" rx="2" ry="2"/>
+                <line x1="8" y1="21" x2="16" y2="21"/>
+                <line x1="12" y1="17" x2="12" y2="21"/>
+              </svg>
+              Grade Escolar
+            </div>
+            <div class="topbar__subtitle">Sua semana de aulas, de Segunda a Sábado (19:30 às 23:00)</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="grade-legenda" id="grade-legenda"></div>
+
+      <div class="card">
+        <div id="grade-horaria">
+          <div class="loading-spinner"></div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js/supabaseClient.js"></script>
+  <script src="js/utils.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/sidebar.js"></script>
+  <script src="js/grade-escolar.js"></script>
+</body>
+</html>

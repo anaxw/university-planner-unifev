@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Calendário — Rotina Faculdade</title>
+<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/components.css">
+<style>
+/* =========================================================
+   ESTILOS ESPECÍFICOS DO CALENDÁRIO
+   ========================================================= */
+
+.calendar-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+  padding: 0 4px;
+}
+
+.calendar-nav h3 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.calendar-nav .btn-icon {
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius);
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: background var(--transition), color var(--transition);
+}
+
+.calendar-nav .btn-icon:hover {
+  background: var(--gray-light);
+  color: var(--text);
+}
+
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+}
+
+.calendar-weekday {
+  text-align: center;
+  font-weight: 600;
+  font-size: 12px;
+  color: var(--text-muted);
+  padding: 8px 0 12px 0;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.calendar-day {
+  aspect-ratio: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  padding: 6px 4px;
+  border-radius: var(--radius);
+  background: var(--bg);
+  cursor: pointer;
+  transition: background var(--transition), transform var(--transition);
+  position: relative;
+  min-height: 56px;
+  border: 2px solid transparent;
+}
+
+.calendar-day:hover {
+  background: var(--gray-light);
+  transform: scale(1.02);
+}
+
+.calendar-day.other-month {
+  opacity: 0.3;
+  pointer-events: none;
+}
+
+.calendar-day.today {
+  background: var(--primary);
+  color: white;
+  border-color: var(--primary);
+}
+
+.calendar-day.today .calendar-day__num {
+  color: white;
+}
+
+.calendar-day.today .calendar-day__dots .calendar-day__dot {
+  border-color: rgba(255, 255, 255, 0.6);
+}
+
+.calendar-day.selected {
+  border-color: var(--primary);
+  background: rgba(79, 125, 243, 0.08);
+}
+
+.calendar-day__num {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text);
+  line-height: 1.2;
+}
+
+.calendar-day__dots {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 3px;
+  justify-content: center;
+  margin-top: 4px;
+  width: 100%;
+  padding: 0 2px;
+}
+
+.calendar-day__dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  display: inline-block;
+  border: 1px solid transparent;
+  flex-shrink: 0;
+}
+
+/* Lista de itens do dia */
+.item-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 8px;
+  max-height: 400px;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.item-list::-webkit-scrollbar {
+  width: 4px;
+}
+
+.item-list::-webkit-scrollbar-track {
+  background: var(--gray-light);
+  border-radius: 2px;
+}
+
+.item-list::-webkit-scrollbar-thumb {
+  background: var(--primary);
+  border-radius: 2px;
+}
+
+.item-row {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  padding: 10px 12px;
+  background: var(--bg);
+  border-radius: var(--radius);
+  transition: background var(--transition), transform var(--transition);
+  cursor: default;
+}
+
+.item-row:hover {
+  background: var(--gray-light);
+  transform: translateX(2px);
+}
+
+.item-row__color {
+  width: 4px;
+  min-height: 36px;
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+
+.item-row__main {
+  flex: 1;
+  min-width: 0;
+}
+
+.item-row__title {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  word-break: break-word;
+}
+
+.item-row__title svg {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+  color: var(--text-muted);
+}
+
+.item-row__meta {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+/* Empty state */
+.empty-state {
+  text-align: center;
+  padding: 40px 20px;
+  color: var(--text-muted);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.empty-state svg {
+  color: var(--gray-light);
+}
+
+.empty-state p {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.6;
+  max-width: 280px;
+}
+
+/* Botão adicionar evento */
+.btn-add-event {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  margin-top: 12px;
+  padding: 10px 16px;
+  border-radius: var(--radius);
+  border: 2px dashed var(--gray-light);
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--transition);
+}
+
+.btn-add-event:hover {
+  border-color: var(--primary);
+  color: var(--primary);
+  background: rgba(79, 125, 243, 0.04);
+}
+
+.btn-add-event svg {
+  width: 18px;
+  height: 18px;
+}
+
+/* Modal */
+.field-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+/* Responsividade */
+@media (max-width: 1024px) {
+  .grid[style*="grid-template-columns"] {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+@media (max-width: 768px) {
+  .calendar-day {
+    min-height: 44px;
+    padding: 4px 2px;
+  }
+  
+  .calendar-day__num {
+    font-size: 12px;
+  }
+  
+  .calendar-day__dot {
+    width: 5px;
+    height: 5px;
+  }
+  
+  .calendar-day__dots {
+    gap: 2px;
+    margin-top: 2px;
+  }
+  
+  .field-row {
+    grid-template-columns: 1fr;
+  }
+  
+  .item-row {
+    padding: 8px 10px;
+  }
+  
+  .item-row__title {
+    font-size: 13px;
+  }
+}
+
+@media (max-width: 480px) {
+  .calendar-day {
+    min-height: 36px;
+    padding: 2px 1px;
+  }
+  
+  .calendar-day__num {
+    font-size: 10px;
+  }
+  
+  .calendar-day__dot {
+    width: 4px;
+    height: 4px;
+  }
+  
+  .calendar-day__dots {
+    gap: 1px;
+  }
+  
+  .calendar-weekday {
+    font-size: 10px;
+    padding: 4px 0 6px 0;
+  }
+  
+  .calendar-nav h3 {
+    font-size: 14px;
+  }
+}
+</style>
+</head>
+<body>
+
+  <div class="app">
+    <div id="sidebar-root"></div>
+
+    <main class="main">
+      <div class="topbar">
+        <div class="flex items-center gap-12">
+          <button class="btn-icon" id="mobile-toggle" aria-label="Abrir menu">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="3" y1="12" x2="21" y2="12"/>
+              <line x1="3" y1="6" x2="21" y2="6"/>
+              <line x1="3" y1="18" x2="21" y2="18"/>
+            </svg>
+          </button>
+          <div>
+            <div class="topbar__title">Calendário</div>
+            <div class="topbar__subtitle">Tarefas, provas e eventos do mês</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid" style="grid-template-columns: 2fr 1fr; gap:20px;">
+        <!-- Coluna esquerda: calendário -->
+        <div class="card">
+          <div class="calendar-nav">
+            <button class="btn-icon" id="mes-anterior" aria-label="Mês anterior">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="15 18 9 12 15 6"/>
+              </svg>
+            </button>
+            <h3 id="mes-atual-label"></h3>
+            <button class="btn-icon" id="mes-proximo" aria-label="Próximo mês">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="9 18 15 12 9 6"/>
+              </svg>
+            </button>
+          </div>
+          <div class="calendar" id="calendario-completo">
+            <div class="loading-spinner"></div>
+          </div>
+        </div>
+
+        <!-- Coluna direita: detalhes do dia -->
+        <div class="card">
+          <div class="card-header">
+            <h3 id="dia-selecionado-label">Selecione um dia</h3>
+          </div>
+          <div class="item-list" id="lista-dia-selecionado">
+            <div class="empty-state">
+              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                <line x1="16" y1="2" x2="16" y2="6"/>
+                <line x1="8" y1="2" x2="8" y2="6"/>
+                <line x1="3" y1="10" x2="21" y2="10"/>
+              </svg>
+              <p>Clique em uma data no calendário para ver ou adicionar eventos.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- MODAL: novo evento -->
+  <div class="modal-overlay" id="modal-evento">
+    <div class="modal">
+      <div class="modal-header">
+        <h3>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+            <line x1="16" y1="2" x2="16" y2="6"/>
+            <line x1="8" y1="2" x2="8" y2="6"/>
+            <line x1="3" y1="10" x2="21" y2="10"/>
+          </svg>
+          Novo evento
+        </h3>
+        <button class="modal-close" onclick="fecharModal('modal-evento')" aria-label="Fechar">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"/>
+            <line x1="6" y1="6" x2="18" y2="18"/>
+          </svg>
+        </button>
+      </div>
+      <form id="form-evento">
+        <div class="field">
+          <label for="evento-titulo">Título *</label>
+          <input class="input" id="evento-titulo" required placeholder="Ex: Reunião do grupo de trabalho">
+        </div>
+        <div class="field">
+          <label for="evento-descricao">Descrição</label>
+          <textarea class="textarea" id="evento-descricao" placeholder="Detalhes (opcional)" rows="3"></textarea>
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label for="evento-tipo">Tipo</label>
+            <select class="select" id="evento-tipo">
+              <option value="evento">📅 Evento</option>
+              <option value="prova">📝 Prova</option>
+              <option value="tarefa">📋 Tarefa</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="evento-data">Data *</label>
+            <input class="input" type="date" id="evento-data" required>
+          </div>
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn btn-secondary" onclick="fecharModal('modal-evento')">Cancelar</button>
+          <button type="submit" class="btn btn-primary">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
+              <polyline points="17 21 17 13 7 13 7 21"/>
+              <polyline points="7 3 7 8 15 8"/>
+            </svg>
+            Salvar
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js/supabaseClient.js"></script>
+  <script src="js/utils.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/sidebar.js"></script>
+  <script src="js/calendario.js"></script>
+</body>
+</html>
