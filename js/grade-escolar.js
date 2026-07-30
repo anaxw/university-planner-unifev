@@ -209,12 +209,117 @@ function renderGradeHoraria() {
     `;
   }).join('');
 
-  container.innerHTML = `<div class="grade-wrap">${eixoHtml}${colunasHtml}</div>`;
+  const mobileHtml = renderGradeMobile();
 
-  // Evento de clique nos blocos
+  container.innerHTML = `
+    <div class="grade-wrap">${eixoHtml}${colunasHtml}</div>
+    <div class="grade-dias-mobile">${mobileHtml}</div>
+  `;
+
+  // Evento de clique nos blocos (versão desktop)
   container.querySelectorAll('.grade-bloco').forEach(el => {
     el.addEventListener('click', () => {
       window.location.href = `materias.html?id=${el.dataset.id}`;
     });
   });
+
+  // Evento de clique nos itens (versão mobile)
+  container.querySelectorAll('.grade-item-mobile').forEach(el => {
+    el.addEventListener('click', () => {
+      window.location.href = `materias.html?id=${el.dataset.id}`;
+    });
+  });
+}
+
+// =========================================================
+// RENDERIZAÇÃO DA GRADE — VERSÃO MOBILE (dias empilhados)
+// =========================================================
+
+function renderGradeMobile() {
+  const nomesDiaCompleto = {
+    1: 'Segunda-feira',
+    2: 'Terça-feira',
+    3: 'Quarta-feira',
+    4: 'Quinta-feira',
+    5: 'Sexta-feira',
+    6: 'Sábado',
+  };
+
+  return DIAS_SEMANA_HORARIO.map(dia => {
+    // Monta a lista de aulas do dia
+    const aulas = [];
+    MATERIAS_CACHE.forEach(m => {
+      (HORARIOS_POR_MATERIA[m.id] || []).forEach(h => {
+        if (h.dia_semana !== dia.valor) return;
+        aulas.push({
+          tipoEvento: 'aula',
+          inicio: h.hora_inicio.slice(0, 5),
+          fim: h.hora_fim.slice(0, 5),
+          materia: m,
+        });
+      });
+    });
+
+    if (!aulas.length) {
+      return `
+        <div class="grade-dia-card">
+          <div class="grade-dia-card__header">
+            <span class="grade-dia-card__nome">${nomesDiaCompleto[dia.valor]}</span>
+            <span class="grade-dia-card__contagem">Sem aulas</span>
+          </div>
+        </div>
+      `;
+    }
+
+    // Intercala o intervalo na posição correta, ordenando tudo por horário de início
+    const eventos = [
+      ...aulas,
+      { tipoEvento: 'intervalo', inicio: INTERVALO_INICIO, fim: INTERVALO_FIM },
+    ].sort((a, b) => minutosDoDia(a.inicio) - minutosDoDia(b.inicio));
+
+    const itensHtml = eventos.map(ev => {
+      if (ev.tipoEvento === 'intervalo') {
+        return `<div class="grade-intervalo-mobile">Intervalo · ${ev.inicio}–${ev.fim}</div>`;
+      }
+      const m = ev.materia;
+      const tipoInfo = TIPOS_MATERIA[m.tipo] || TIPOS_MATERIA.presencial;
+      const tipoIcon = tipoInfo.icone === 'presencial' ? `
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/>
+          <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>
+        </svg>
+      ` : `
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="2" y="3" width="20" height="14" rx="2" ry="2"/>
+          <line x1="8" y1="21" x2="16" y2="21"/>
+          <line x1="12" y1="17" x2="12" y2="21"/>
+        </svg>
+      `;
+
+      return `
+        <div class="grade-item-mobile" data-id="${m.id}" style="border-left-color:${m.cor || '#4F7DF3'}">
+          <div class="grade-item-mobile__info">
+            <div class="grade-item-mobile__nome">${escapeHTML(m.nome)}</div>
+            <div class="grade-item-mobile__horario">${ev.inicio}–${ev.fim}</div>
+          </div>
+          <span class="grade-badge ${m.tipo || 'presencial'}">
+            ${tipoIcon}
+            ${tipoInfo.label}
+          </span>
+        </div>
+      `;
+    }).join('');
+
+    return `
+      <div class="grade-dia-card">
+        <div class="grade-dia-card__header">
+          <span class="grade-dia-card__nome">${nomesDiaCompleto[dia.valor]}</span>
+          <span class="grade-dia-card__contagem">${aulas.length} aula${aulas.length > 1 ? 's' : ''}</span>
+        </div>
+        <div class="grade-dia-card__body">
+          ${itensHtml}
+        </div>
+      </div>
+    `;
+  }).join('');
 }
