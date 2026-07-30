@@ -41,6 +41,7 @@ let NOTA_SUJA = false;      // true = existem alterações não salvas no painel
   document.getElementById('btn-excluir-nota').addEventListener('click', () => {
     if (ANOTACAO_ATUAL) excluirAnotacao(ANOTACAO_ATUAL.id);
   });
+  document.getElementById('btn-voltar-nota').addEventListener('click', fecharPainelAnotacao);
 
   // Toolbar de formatação (insere sintaxe markdown no textarea)
   document.getElementById('notes-toolbar').addEventListener('click', (e) => {
@@ -140,9 +141,25 @@ function abrirPainelAnotacao(anotacao) {
 
   document.getElementById('btn-excluir-nota').style.display = anotacao ? '' : 'none';
 
+  // No mobile, o editor desliza por cima da lista (como no Bloco de Notas)
+  document.getElementById('notes-layout').classList.add('is-editing');
+
   marcarComoLimpa();
   destacarItemAtivo();
   document.getElementById('detail-titulo').focus();
+}
+
+// Fecha o editor e volta para a lista (botão "Voltar", usado no mobile)
+function fecharPainelAnotacao() {
+  if (NOTA_SUJA) {
+    const continuar = confirm('Você tem alterações não salvas. Deseja descartá-las?');
+    if (!continuar) return;
+  }
+
+  ANOTACAO_ATUAL = null;
+  document.getElementById('notes-layout').classList.remove('is-editing');
+  marcarComoLimpa();
+  destacarItemAtivo();
 }
 
 function marcarComoSuja() {
@@ -217,6 +234,7 @@ async function excluirAnotacao(id) {
   ANOTACAO_ATUAL = null;
   document.getElementById('notes-detail-editor').style.display = 'none';
   document.getElementById('notes-detail-empty').style.display = 'flex';
+  document.getElementById('notes-layout').classList.remove('is-editing');
   marcarComoLimpa();
   await carregarAnotacoes();
 }
