@@ -1,8 +1,3 @@
-// =========================================================
-// JOB DE LEMBRETES — envia avisos de tarefas/provas via Telegram
-// Chamado periodicamente (cron da Vercel ou um agendador externo).
-// =========================================================
-
 const { createClient } = require('@supabase/supabase-js');
 
 module.exports = async function handler(req, res) {
@@ -22,17 +17,17 @@ module.exports = async function handler(req, res) {
     });
   }
 
-  try {
-    const supabaseAdmin = createClient(
-      process.env.SUPABASE_URL,
-      process.env.SUPABASE_SERVICE_ROLE_KEY,
-    );
+  const supabaseAdmin = createClient(
+    process.env.SUPABASE_URL,
+    process.env.SUPABASE_SERVICE_ROLE_KEY,
+  );
 
+  try {
     const agora = new Date();
 
     const { data: usuarios, error: errUsuarios } = await supabaseAdmin
       .from('usuarios')
-      .select('id, nome, telegram_chat_id, lembrete_dias, lembrete_horas, lembrete_minutos, lembretes_ativos')
+      .select('id, nome, telegram_chat_id')
       .eq('lembretes_ativos', true)
       .not('telegram_chat_id', 'is', null);
 
@@ -41,10 +36,19 @@ module.exports = async function handler(req, res) {
     let totalEnviados = 0;
 
     for (const usuario of usuarios) {
-      const antecedenciaMin =
-        (usuario.lembrete_dias ?? 0) * 1440 +
-        (usuario.lembrete_horas ?? 0) * 60 +
-        (usuario.lembrete_minutos ?? 0);
+      // Busca as regras de antecedência configuradas por esse usuário
+      const { data: regras, error: errRegras } = await supabaseAdmin
+        .from('lembrete_regras')
+        .select('id, dias, horas, minutos')
+        .eq('user_id', usuario.id);
+
+      if (errRegras) {
+        console.error('Erro ao buscar regras de lembrete do usuário', usuario.id, errRegras);
+        continue;
+      }
+
+      // Sem nenhuma regra cadastrada, não há o que avisar
+      if (!regras || regras.length === 0) continue;
 
       // Busca todas as tarefas/provas pendentes com data de entrega definida
       const { data: tarefas, error: errTarefas } = await supabaseAdmin
@@ -61,33 +65,40 @@ module.exports = async function handler(req, res) {
 
       for (const tarefa of tarefas) {
         const dataHoraEntrega = criarDataBrasilia(tarefa.data_entrega, tarefa.hora_entrega);
-        const dataHoraAviso = new Date(dataHoraEntrega.getTime() - antecedenciaMin * 60000);
 
-        // Ainda não chegou o momento configurado de avisar
-        if (agora < dataHoraAviso) continue;
+        for (const regra of regras) {
+          const antecedenciaMin =
+            (regra.dias ?? 0) * 1440 + (regra.horas ?? 0) * 60 + (regra.minutos ?? 0);
+          const dataHoraAviso = new Date(dataHoraEntrega.getTime() - antecedenciaMin * 60000);
 
-        // Evita enviar o mesmo aviso mais de uma vez
-        const { data: jaEnviado } = await supabaseAdmin
-          .from('lembretes_enviados')
-          .select('id')
-          .eq('tarefa_id', tarefa.id)
-          .maybeSingle();
+          // Ainda não chegou o momento configurado dessa regra
+          if (agora < dataHoraAviso) continue;
 
-        if (jaEnviado) continue;
+          // Evita enviar o mesmo aviso (tarefa + regra) mais de uma vez
+          const { data: jaEnviado } = await supabaseAdmin
+            .from('lembretes_enviados')
+            .select('id')
+            .eq('tarefa_id', tarefa.id)
+            .eq('regra_id', regra.id)
+            .maybeSingle();
 
-        const nome = usuario.nome || 'Você';
-        const rotulo = tarefa.tipo === 'prova' ? 'prova' : 'tarefa';
-        const prazo = formatarPrazo(antecedenciaMin);
-        const mensagem = `📚 ${nome}, sua ${rotulo} "${tarefa.titulo}" vence ${prazo}!`;
+          if (jaEnviado) continue;
 
-        const enviado = await enviarTelegram(usuario.telegram_chat_id, mensagem);
+          const nome = usuario.nome || 'Você';
+          const rotulo = tarefa.tipo === 'prova' ? 'prova' : 'tarefa';
+          const prazo = formatarPrazo(antecedenciaMin);
+          const mensagem = `📚 ${nome}, sua ${rotulo} "${tarefa.titulo}" vence ${prazo}!`;
 
-        if (enviado) {
-          await supabaseAdmin.from('lembretes_enviados').insert({
-            user_id: usuario.id,
-            tarefa_id: tarefa.id,
-          });
-          totalEnviados++;
+          const enviado = await enviarTelegram(usuario.telegram_chat_id, mensagem);
+
+          if (enviado) {
+            await supabaseAdmin.from('lembretes_enviados').insert({
+              user_id: usuario.id,
+              tarefa_id: tarefa.id,
+              regra_id: regra.id,
+            });
+            totalEnviados++;
+          }
         }
       }
     }
