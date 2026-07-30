@@ -81,38 +81,44 @@
         <div id="telegram-vinculado" class="hidden">
           <p class="text-sm mb-16">✅ Sua conta está vinculada ao Telegram.</p>
 
-          <form id="form-lembretes">
-            <div class="field">
-              <label>Avisar com quanto tempo de antecedência?</label>
-              <div class="field-row" style="grid-template-columns: 1fr 1fr 1fr;">
-                <div>
-                  <label for="lembrete-dias" class="text-muted text-sm">Dias</label>
-                  <input class="input" type="number" min="0" id="lembrete-dias" value="1">
-                </div>
-                <div>
-                  <label for="lembrete-horas" class="text-muted text-sm">Horas</label>
-                  <input class="input" type="number" min="0" max="23" id="lembrete-horas" value="0">
-                </div>
-                <div>
-                  <label for="lembrete-minutos" class="text-muted text-sm">Minutos</label>
-                  <input class="input" type="number" min="0" max="59" id="lembrete-minutos" value="0">
-                </div>
+          <div class="field">
+            <label for="lembretes-ativo">Lembretes</label>
+            <select class="select" id="lembretes-ativo">
+              <option value="true">Ativados</option>
+              <option value="false">Desativados</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label>Quando avisar?</label>
+            <p class="text-muted text-sm mb-8">
+              Adicione quantos avisos quiser para a mesma tarefa — por exemplo, 1 dia antes,
+              depois 3 horas antes, depois 30 minutos antes.
+            </p>
+            <ul id="lista-regras" class="mb-16" style="list-style:none; padding:0;"></ul>
+
+            <div class="field-row" style="grid-template-columns: 1fr 1fr 1fr auto; align-items:end;">
+              <div>
+                <label for="regra-dias" class="text-muted text-sm">Dias</label>
+                <input class="input" type="number" min="0" id="regra-dias" value="0">
+              </div>
+              <div>
+                <label for="regra-horas" class="text-muted text-sm">Horas</label>
+                <input class="input" type="number" min="0" max="23" id="regra-horas" value="0">
+              </div>
+              <div>
+                <label for="regra-minutos" class="text-muted text-sm">Minutos</label>
+                <input class="input" type="number" min="0" max="59" id="regra-minutos" value="0">
+              </div>
+              <div>
+                <button type="button" class="btn btn-primary" id="btn-add-regra">+ Adicionar</button>
               </div>
             </div>
+          </div>
 
-            <div class="field">
-              <label for="lembretes-ativo">Lembretes</label>
-              <select class="select" id="lembretes-ativo">
-                <option value="true">Ativados</option>
-                <option value="false">Desativados</option>
-              </select>
-            </div>
-
-            <div class="flex gap-12 mt-16">
-              <button type="submit" class="btn btn-primary">Salvar preferências</button>
-              <button type="button" class="btn btn-danger" id="btn-desvincular-telegram">Desvincular Telegram</button>
-            </div>
-          </form>
+          <div class="flex gap-12 mt-16">
+            <button type="button" class="btn btn-danger" id="btn-desvincular-telegram">Desvincular Telegram</button>
+          </div>
         </div>
       </div>
 
