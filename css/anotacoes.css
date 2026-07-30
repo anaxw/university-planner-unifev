@@ -3,17 +3,32 @@
    (extraído do anotacoes.html, adaptado para o tema claro)
    ========================================================= */
 
+.notes-toolbar-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.notes-materia-filter {
+  max-width: 220px;
+}
+
 .notes-layout {
   display: flex;
   gap: 20px;
   height: calc(100vh - 190px);
   min-height: 420px;
+  min-width: 0;
 }
 
 /* ----- Coluna: lista ----- */
 .notes-list {
   width: 300px;
   flex: 0 0 300px;
+  min-width: 0;
   overflow-y: auto;
   display: flex;
   flex-direction: column;
@@ -96,7 +111,26 @@
 .notes-detail__header {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 6px;
+}
+
+.notes-detail__back {
+  display: none;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  background: transparent;
+  border: none;
+  border-radius: 50%;
+  color: var(--primary);
+  transition: background var(--transition);
+}
+
+.notes-detail__back:hover,
+.notes-detail__back:active {
+  background: var(--gray-light);
 }
 
 .notes-detail__title-input {
@@ -213,16 +247,65 @@
 }
 
 @media (max-width: 860px) {
-  .notes-layout {
+  .notes-toolbar-row {
     flex-direction: column;
-    height: auto;
+    align-items: stretch;
   }
+
+  .search-box,
+  .notes-materia-filter {
+    max-width: none;
+    width: 100%;
+  }
+
+  .notes-layout {
+    position: relative;
+    flex-direction: column;
+    gap: 0;
+    height: calc(100vh - 160px);
+    min-height: 0;
+    overflow: visible;
+  }
+
+  /* No mobile só existe uma "tela" visível por vez: lista OU editor */
   .notes-list {
     width: 100%;
-    flex: none;
-    max-height: 280px;
+    flex: 1;
+    max-height: none;
+    padding-right: 0;
   }
+
   .notes-detail {
-    min-height: 420px;
+    position: fixed;
+    inset: 0;
+    z-index: 150;
+    border: none;
+    border-radius: 0;
+    transform: translateX(100%);
+    transition: transform 260ms ease;
+    padding-top: env(safe-area-inset-top);
+  }
+
+  /* JS adiciona .is-editing no #notes-layout ao abrir uma anotação */
+  .notes-layout.is-editing .notes-detail {
+    transform: translateX(0);
+  }
+
+  .notes-detail__back {
+    display: flex;
+  }
+
+  .notes-detail__editor {
+    padding: 14px 16px calc(14px + env(safe-area-inset-bottom));
+  }
+
+  .notes-detail__title-input {
+    font-size: 1.2rem;
+  }
+
+  .notes-detail__meta select,
+  .notes-detail__meta input {
+    max-width: none;
+    flex: 1;
   }
 }
