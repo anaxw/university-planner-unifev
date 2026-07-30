@@ -77,7 +77,6 @@ async function carregarGrade() {
       });
     }
 
-    renderLegenda();
     renderGradeHoraria();
   } catch (error) {
     console.error('Erro ao carregar grade:', error);
@@ -96,44 +95,23 @@ async function carregarGrade() {
 }
 
 // =========================================================
-// RENDERIZAÇÃO DA LEGENDA
+// ÍCONES DE TIPO (Presencial / EAD)
 // =========================================================
 
-function renderLegenda() {
-  const container = document.getElementById('grade-legenda');
-  if (!container) return;
-
-  if (!MATERIAS_CACHE.length) {
-    container.innerHTML = '';
-    return;
-  }
-
-  container.innerHTML = MATERIAS_CACHE.map(m => {
-    const tipoInfo = TIPOS_MATERIA[m.tipo] || TIPOS_MATERIA.presencial;
-    const tipoIcon = tipoInfo.icone === 'presencial' ? `
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/>
-        <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>
-      </svg>
-    ` : `
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <rect x="2" y="3" width="20" height="14" rx="2" ry="2"/>
-        <line x1="8" y1="21" x2="16" y2="21"/>
-        <line x1="12" y1="17" x2="12" y2="21"/>
-      </svg>
-    `;
-    
-    return `
-      <div class="grade-legenda__item">
-        <span class="grade-legenda__dot" style="background:${m.cor || '#4F7DF3'}"></span>
-        ${escapeHTML(m.nome)}
-        <span class="grade-badge ${m.tipo || 'presencial'}">
-          ${tipoIcon}
-          ${tipoInfo.label}
-        </span>
-      </div>
-    `;
-  }).join('');
+function iconeTipo(tipo) {
+  const tipoInfo = TIPOS_MATERIA[tipo] || TIPOS_MATERIA.presencial;
+  return tipoInfo.icone === 'presencial' ? `
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/>
+      <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>
+    </svg>
+  ` : `
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <rect x="2" y="3" width="20" height="14" rx="2" ry="2"/>
+      <line x1="8" y1="21" x2="16" y2="21"/>
+      <line x1="12" y1="17" x2="12" y2="21"/>
+    </svg>
+  `;
 }
 
 // =========================================================
@@ -189,10 +167,19 @@ function renderGradeHoraria() {
         const fim = h.hora_fim.slice(0, 5);
         const topo = ((minutosDoDia(inicio) - minutosDoDia(AULA_INICIO)) / totalMin) * 100;
         const altura = ((minutosDoDia(fim) - minutosDoDia(inicio)) / totalMin) * 100;
+        const tipoInfo = TIPOS_MATERIA[m.tipo] || TIPOS_MATERIA.presencial;
+        const professorHtml = m.professor
+          ? `<div class="grade-bloco__professor">${escapeHTML(m.professor)}</div>`
+          : '';
         blocos.push(`
-          <div class="grade-bloco" data-id="${m.id}" style="top:${topo}%; height:${altura}%; background:${m.cor || '#4F7DF3'}" title="${escapeHTML(m.nome)} · ${inicio}-${fim}">
+          <div class="grade-bloco" data-id="${m.id}" style="top:${topo}%; height:${altura}%; background:${m.cor || '#4F7DF3'}" title="${escapeHTML(m.nome)}${m.professor ? ' · ' + escapeHTML(m.professor) : ''} · ${inicio}-${fim}">
             <div class="grade-bloco__nome">${escapeHTML(m.nome)}</div>
             <div class="grade-bloco__horario">${inicio}-${fim}</div>
+            ${professorHtml}
+            <span class="grade-badge ${m.tipo || 'presencial'}">
+              ${iconeTipo(m.tipo)}
+              ${tipoInfo.label}
+            </span>
           </div>
         `);
       });
@@ -283,27 +270,19 @@ function renderGradeMobile() {
       }
       const m = ev.materia;
       const tipoInfo = TIPOS_MATERIA[m.tipo] || TIPOS_MATERIA.presencial;
-      const tipoIcon = tipoInfo.icone === 'presencial' ? `
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/>
-          <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>
-        </svg>
-      ` : `
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <rect x="2" y="3" width="20" height="14" rx="2" ry="2"/>
-          <line x1="8" y1="21" x2="16" y2="21"/>
-          <line x1="12" y1="17" x2="12" y2="21"/>
-        </svg>
-      `;
+      const professorHtml = m.professor
+        ? `<div class="grade-item-mobile__professor">${escapeHTML(m.professor)}</div>`
+        : '';
 
       return `
         <div class="grade-item-mobile" data-id="${m.id}" style="border-left-color:${m.cor || '#4F7DF3'}">
           <div class="grade-item-mobile__info">
             <div class="grade-item-mobile__nome">${escapeHTML(m.nome)}</div>
             <div class="grade-item-mobile__horario">${ev.inicio}–${ev.fim}</div>
+            ${professorHtml}
           </div>
           <span class="grade-badge ${m.tipo || 'presencial'}">
-            ${tipoIcon}
+            ${iconeTipo(m.tipo)}
             ${tipoInfo.label}
           </span>
         </div>
