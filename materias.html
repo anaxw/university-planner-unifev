@@ -1,0 +1,620 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Matérias — Rotina Faculdade</title>
+<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/components.css">
+<style>
+  /* =========================================================
+     ESTILOS ESPECÍFICOS DE MATÉRIAS
+     ========================================================= */
+
+  .tipo-options {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+
+  .tipo-option {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    border: 1px solid var(--gray-light);
+    border-radius: 10px;
+    padding: 8px 14px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: border-color .15s, background .15s;
+    background: var(--bg);
+  }
+
+  .tipo-option:has(input:checked) {
+    border-color: var(--primary);
+    background: rgba(79, 125, 243, 0.08);
+    font-weight: 600;
+  }
+
+  .tipo-option input {
+    accent-color: var(--primary);
+  }
+
+  .tipo-option svg {
+    width: 18px;
+    height: 18px;
+    flex-shrink: 0;
+  }
+
+  .grade-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 6px;
+    margin-left: 6px;
+    vertical-align: middle;
+  }
+
+  .grade-badge.presencial {
+    background: #e7f0ff;
+    color: #2d5bd4;
+  }
+
+  .grade-badge.ead {
+    background: #fff1e0;
+    color: #c07a10;
+  }
+
+  .grade-badge svg {
+    width: 12px;
+    height: 12px;
+  }
+
+  /* Matéria card */
+  .materia-card {
+    background: var(--card);
+    border-radius: var(--radius);
+    padding: 16px;
+    border-top: 4px solid var(--primary);
+    box-shadow: var(--shadow);
+    transition: box-shadow var(--transition), transform var(--transition);
+    cursor: pointer;
+    position: relative;
+  }
+
+  .materia-card:hover {
+    box-shadow: var(--shadow-md);
+    transform: translateY(-2px);
+  }
+
+  .materia-card__top {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .materia-card__name {
+    font-weight: 600;
+    font-size: 15px;
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 4px;
+  }
+
+  .materia-card__prof {
+    font-size: 13px;
+    color: var(--text-muted);
+    margin-top: 2px;
+  }
+
+  .materia-card__horario {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-top: 8px;
+    padding-top: 8px;
+    border-top: 1px solid var(--gray-light);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .materia-card__horario svg {
+    width: 14px;
+    height: 14px;
+    flex-shrink: 0;
+  }
+
+  .item-row__actions {
+    display: flex;
+    gap: 4px;
+    flex-shrink: 0;
+  }
+
+  .item-row__actions .btn-icon {
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 6px;
+    border: none;
+    background: transparent;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: background var(--transition), color var(--transition);
+  }
+
+  .item-row__actions .btn-icon:hover {
+    background: var(--gray-light);
+    color: var(--text);
+  }
+
+  .item-row__actions .btn-icon.btn-edit:hover {
+    color: var(--primary);
+    background: rgba(79, 125, 243, 0.08);
+  }
+
+  .item-row__actions .btn-icon.btn-delete:hover {
+    color: #dc2626;
+    background: rgba(220, 38, 38, 0.08);
+  }
+
+  .item-row__actions .btn-icon svg {
+    width: 16px;
+    height: 16px;
+  }
+
+  /* Detalhe da matéria */
+  #detalhe-materia.hidden {
+    display: none;
+  }
+
+  #detalhe-materia .card-header h3 {
+    font-size: 15px;
+    margin: 0;
+  }
+
+  /* Horários no formulário */
+  .horario-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+    flex-wrap: wrap;
+  }
+
+  .horario-row .input {
+    flex-shrink: 0;
+  }
+
+  .horario-row .btn-remover-horario {
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 6px;
+    border: none;
+    background: transparent;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: background var(--transition), color var(--transition);
+  }
+
+  .horario-row .btn-remover-horario:hover {
+    background: rgba(220, 38, 38, 0.08);
+    color: #dc2626;
+  }
+
+  .horario-row .btn-remover-horario svg {
+    width: 16px;
+    height: 16px;
+  }
+
+  .horario-row .text-muted {
+    color: var(--text-muted);
+    font-size: 13px;
+  }
+
+  /* Grade horária (mini) */
+  .grade-wrap {
+    display: flex;
+    gap: 6px;
+    overflow-x: auto;
+    padding: 6px 2px;
+    margin-top: 8px;
+  }
+
+  .grade-wrap::-webkit-scrollbar {
+    height: 4px;
+  }
+
+  .grade-wrap::-webkit-scrollbar-track {
+    background: var(--gray-light);
+    border-radius: 2px;
+  }
+
+  .grade-wrap::-webkit-scrollbar-thumb {
+    background: var(--primary);
+    border-radius: 2px;
+  }
+
+  .grade-eixo {
+    width: 40px;
+    flex-shrink: 0;
+    position: relative;
+    height: 200px;
+    font-size: 9px;
+    color: var(--text-muted);
+  }
+
+  .grade-eixo span {
+    position: absolute;
+    transform: translateY(-50%);
+    right: 4px;
+    font-weight: 500;
+  }
+
+  .grade-col {
+    flex: 1 1 0;
+    min-width: 50px;
+    position: relative;
+  }
+
+  .grade-col__header {
+    text-align: center;
+    font-weight: 700;
+    font-size: 10px;
+    margin-bottom: 4px;
+    color: var(--text);
+  }
+
+  .grade-col__body {
+    position: relative;
+    height: 200px;
+    border: 1px solid var(--gray-light);
+    border-radius: 6px;
+    background: var(--bg);
+    overflow: hidden;
+  }
+
+  .grade-intervalo {
+    position: absolute;
+    left: 0;
+    right: 0;
+    background: repeating-linear-gradient(45deg, #f1f2f5, #f1f2f5 4px, #e9eaee 4px, #e9eaee 8px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 7px;
+    color: var(--text-muted);
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+  }
+
+  .grade-bloco {
+    position: absolute;
+    left: 2px;
+    right: 2px;
+    border-radius: 4px;
+    padding: 2px 4px;
+    color: #fff;
+    font-size: 8px;
+    line-height: 1.2;
+    overflow: hidden;
+    cursor: pointer;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+    transition: transform var(--transition);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    min-height: 14px;
+  }
+
+  .grade-bloco:hover {
+    transform: scale(1.05);
+    z-index: 10;
+  }
+
+  .grade-bloco__nome {
+    font-weight: 700;
+    font-size: 7px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .grade-bloco div:not(.grade-bloco__nome) {
+    font-size: 6px;
+    opacity: 0.85;
+  }
+
+  .grade-vazio {
+    padding: 16px;
+    text-align: center;
+    color: var(--text-muted);
+    font-size: 12px;
+  }
+
+  /* Badge status */
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 10px;
+    border-radius: 999px;
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    flex-shrink: 0;
+  }
+
+  .badge-pendente {
+    background: #fef3c7;
+    color: #d97706;
+  }
+
+  .badge-concluida {
+    background: #d1fae5;
+    color: #059669;
+  }
+
+  .badge-atrasada {
+    background: #fee2e2;
+    color: #dc2626;
+  }
+
+  /* Item row no detalhe */
+  .item-row .done {
+    text-decoration: line-through;
+    color: var(--text-muted);
+  }
+
+  /* Responsividade */
+  @media (max-width: 768px) {
+    .tipo-options {
+      flex-direction: column;
+    }
+
+    .tipo-option {
+      width: 100%;
+    }
+
+    .horario-row {
+      flex-wrap: wrap;
+    }
+
+    .horario-row .input {
+      flex: 1;
+      min-width: 80px;
+    }
+
+    .grade-col {
+      min-width: 40px;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .materia-card__top {
+      flex-direction: column;
+    }
+
+    .item-row__actions {
+      align-self: flex-end;
+    }
+
+    .grade-col {
+      min-width: 32px;
+    }
+
+    .grade-eixo {
+      width: 30px;
+      font-size: 7px;
+      height: 160px;
+    }
+
+    .grade-col__body {
+      height: 160px;
+    }
+
+    .grade-bloco {
+      font-size: 6px;
+      padding: 1px 2px;
+      min-height: 10px;
+    }
+
+    .grade-bloco__nome {
+      font-size: 6px;
+    }
+
+    .grade-bloco div:not(.grade-bloco__nome) {
+      font-size: 5px;
+    }
+  }
+</style>
+</head>
+<body>
+
+  <div class="app">
+    <div id="sidebar-root"></div>
+
+    <main class="main">
+      <div class="topbar">
+        <div class="flex items-center gap-12">
+          <button class="btn-icon" id="mobile-toggle" aria-label="Abrir menu">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="3" y1="12" x2="21" y2="12"/>
+              <line x1="3" y1="6" x2="21" y2="6"/>
+              <line x1="3" y1="18" x2="21" y2="18"/>
+            </svg>
+          </button>
+          <div>
+            <div class="topbar__title">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:middle;margin-right:6px;">
+                <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
+                <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
+              </svg>
+              Matérias
+            </div>
+            <div class="topbar__subtitle">Gerencie as disciplinas do seu curso</div>
+          </div>
+        </div>
+        <div class="topbar__actions">
+          <button class="btn btn-primary" id="btn-nova-materia">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="12" y1="5" x2="12" y2="19"/>
+              <line x1="5" y1="12" x2="19" y2="12"/>
+            </svg>
+            Nova matéria
+          </button>
+        </div>
+      </div>
+
+      <div class="grid grid-3" id="lista-materias">
+        <div class="loading-spinner"></div>
+      </div>
+
+      <!-- Detalhe da matéria (tarefas + anotações) -->
+      <div id="detalhe-materia" class="hidden" style="margin-top:28px;">
+        <div class="card" style="margin-bottom:20px;">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-12">
+              <div id="detalhe-cor" style="width:14px;height:14px;border-radius:50%;flex-shrink:0;"></div>
+              <div>
+                <div style="font-weight:700; font-size:17px;" id="detalhe-nome"></div>
+                <div class="text-muted text-sm" id="detalhe-info"></div>
+              </div>
+            </div>
+            <button class="btn btn-ghost btn-sm" id="btn-fechar-detalhe">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="18" y1="6" x2="6" y2="18"/>
+                <line x1="6" y1="6" x2="18" y2="18"/>
+              </svg>
+              Fechar
+            </button>
+          </div>
+        </div>
+
+        <div class="grid grid-2">
+          <div class="card">
+            <div class="card-header">
+              <h3>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:middle;margin-right:6px;">
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                  <polyline points="14 2 14 8 20 8"/>
+                  <line x1="16" y1="13" x2="8" y2="13"/>
+                  <line x1="16" y1="17" x2="8" y2="17"/>
+                </svg>
+                Tarefas desta matéria
+              </h3>
+            </div>
+            <div class="item-list" id="detalhe-tarefas"></div>
+          </div>
+          <div class="card">
+            <div class="card-header">
+              <h3>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:middle;margin-right:6px;">
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                  <polyline points="14 2 14 8 20 8"/>
+                  <line x1="16" y1="13" x2="8" y2="13"/>
+                  <line x1="16" y1="17" x2="8" y2="17"/>
+                  <polyline points="10 9 9 9 8 9"/>
+                </svg>
+                Anotações desta matéria
+              </h3>
+            </div>
+            <div class="item-list" id="detalhe-anotacoes"></div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- MODAL: criar/editar matéria -->
+  <div class="modal-overlay" id="modal-materia">
+    <div class="modal">
+      <div class="modal-header">
+        <h3 id="modal-materia-titulo">Nova matéria</h3>
+        <button class="modal-close" onclick="fecharModal('modal-materia')">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"/>
+            <line x1="6" y1="6" x2="18" y2="18"/>
+          </svg>
+        </button>
+      </div>
+      <form id="form-materia">
+        <input type="hidden" id="materia-id">
+        <div class="field">
+          <label for="materia-nome">Nome da matéria *</label>
+          <input class="input" id="materia-nome" required placeholder="Ex: Cálculo I">
+        </div>
+        <div class="field">
+          <label for="materia-professor">Professor</label>
+          <input class="input" id="materia-professor" placeholder="Ex: João Silva">
+        </div>
+        <div class="field">
+          <label>Horários</label>
+          <div id="horarios-container"></div>
+          <button type="button" class="btn btn-secondary btn-sm" id="btn-add-horario" style="margin-top:8px;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="12" y1="5" x2="12" y2="19"/>
+              <line x1="5" y1="12" x2="19" y2="12"/>
+            </svg>
+            Adicionar horário
+          </button>
+        </div>
+        <div class="field">
+          <label>Tipo de aula</label>
+          <div class="tipo-options" id="tipo-options">
+            <label class="tipo-option">
+              <input type="radio" name="materia-tipo" value="presencial" checked>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/>
+                <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>
+              </svg>
+              Presencial
+            </label>
+            <label class="tipo-option">
+              <input type="radio" name="materia-tipo" value="ead">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="2" y="3" width="20" height="14" rx="2" ry="2"/>
+                <line x1="8" y1="21" x2="16" y2="21"/>
+                <line x1="12" y1="17" x2="12" y2="21"/>
+              </svg>
+              EAD
+            </label>
+          </div>
+        </div>
+        <div class="field">
+          <label>Cor</label>
+          <div class="color-options" id="color-options"></div>
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn btn-secondary" onclick="fecharModal('modal-materia')">Cancelar</button>
+          <button type="submit" class="btn btn-primary">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
+              <polyline points="17 21 17 13 7 13 7 21"/>
+              <polyline points="7 3 7 8 15 8"/>
+            </svg>
+            Salvar
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js/supabaseClient.js"></script>
+  <script src="js/utils.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/sidebar.js"></script>
+  <script src="js/materias.js"></script>
+</body>
+</html>

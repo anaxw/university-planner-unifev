@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Entrar — Rotina Faculdade</title>
+<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/components.css">
+</head>
+<body data-page="login">
+
+  <div class="auth-page">
+    <div class="auth-card">
+      <div class="auth-brand">
+        <div class="sidebar__brand-icon">🎓</div>
+      </div>
+
+      <!-- PAINEL: LOGIN -->
+      <div id="painel-login">
+        <div class="auth-title">Bem-vindo de volta</div>
+        <div class="auth-subtitle">Entre para organizar sua rotina da faculdade</div>
+
+        <form id="form-login">
+          <div class="field">
+            <label for="login-email">E-mail</label>
+            <input class="input" type="email" id="login-email" required autocomplete="email">
+          </div>
+          <div class="field">
+            <label for="login-senha">Senha</label>
+            <input class="input" type="password" id="login-senha" required autocomplete="current-password">
+          </div>
+          <div class="auth-forgot">
+            <button type="button" id="link-esqueci-senha">Esqueci minha senha</button>
+          </div>
+          <button type="submit" class="btn btn-primary w-full">Entrar</button>
+        </form>
+
+        <div class="auth-switch">
+          Não tem uma conta? <a href="#" id="link-cadastro">Cadastre-se</a>
+        </div>
+      </div>
+
+      <!-- PAINEL: CADASTRO -->
+      <div id="painel-cadastro" class="hidden">
+        <div class="auth-title">Criar conta</div>
+        <div class="auth-subtitle">Leva menos de um minuto</div>
+
+        <form id="form-cadastro">
+          <div class="field">
+            <label for="cadastro-nome">Nome</label>
+            <input class="input" type="text" id="cadastro-nome" required autocomplete="name">
+          </div>
+          <div class="field">
+            <label for="cadastro-email">E-mail</label>
+            <input class="input" type="email" id="cadastro-email" required autocomplete="email">
+          </div>
+          <div class="field">
+            <label for="cadastro-senha">Senha</label>
+            <input class="input" type="password" id="cadastro-senha" required minlength="6" autocomplete="new-password">
+          </div>
+          <button type="submit" class="btn btn-primary w-full">Criar conta</button>
+        </form>
+
+        <div class="auth-switch">
+          Já tem conta? <a href="#" id="link-voltar-login">Entrar</a>
+        </div>
+      </div>
+
+      <!-- PAINEL: RECUPERAR SENHA -->
+      <div id="painel-recuperar" class="hidden">
+        <div class="auth-title">Recuperar senha</div>
+        <div class="auth-subtitle">Enviaremos um link para redefinir sua senha</div>
+
+        <form id="form-recuperar">
+          <div class="field">
+            <label for="recuperar-email">E-mail</label>
+            <input class="input" type="email" id="recuperar-email" required autocomplete="email">
+          </div>
+          <button type="submit" class="btn btn-primary w-full">Enviar link de recuperação</button>
+        </form>
+
+        <div class="auth-switch">
+          <a href="#" id="link-voltar-login-2">Voltar para o login</a>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js/supabaseClient.js"></script>
+  <script src="js/utils.js"></script>
+  <script src="js/auth.js"></script>
+</body>
+</html>
