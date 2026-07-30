@@ -197,6 +197,15 @@ function formatarHorarios(lista) {
 
 async function carregarMaterias() {
   const container = document.getElementById('lista-materias');
+  const detalhe = document.getElementById('detalhe-materia');
+
+  // Se o painel de detalhe estiver aberto (e dentro do grid), tira ele de lá
+  // antes de recriar os cards, senão ele seria apagado junto com o innerHTML antigo.
+  const detalheAbertoId = !detalhe.classList.contains('hidden') ? detalhe.dataset.materiaId : null;
+  if (detalhe.parentElement === container) {
+    document.body.appendChild(detalhe);
+  }
+
   const { data, error } = await supabaseClient
     .from('materias')
     .select('*')
@@ -316,6 +325,11 @@ async function carregarMaterias() {
       excluirMateria(btn.dataset.id);
     });
   });
+
+  // Se o painel de detalhe estava aberto antes de recarregar, reabre no lugar certo
+  if (detalheAbertoId && MATERIAS_CACHE.some(m => m.id === detalheAbertoId)) {
+    abrirDetalheMateria(detalheAbertoId);
+  }
 }
 
 // =========================================================
@@ -531,7 +545,20 @@ async function abrirDetalheMateria(id) {
   const materia = MATERIAS_CACHE.find(m => m.id === id) || await buscarMateriaPorId(id);
   if (!materia) return;
 
-  document.getElementById('detalhe-materia').classList.remove('hidden');
+  const detalhe = document.getElementById('detalhe-materia');
+  const card = document.querySelector(`.materia-card[data-id="${id}"]`);
+
+  // Move o painel de detalhe para logo depois do card clicado, dentro do grid.
+  // Assim ele "abre" no espaço abaixo daquela matéria — tanto em grid de
+  // várias colunas (desktop) quanto em coluna única (mobile).
+  if (card) {
+    detalhe.style.gridColumn = '1 / -1';
+    detalhe.style.marginTop = '0';
+    card.insertAdjacentElement('afterend', detalhe);
+  }
+
+  detalhe.classList.remove('hidden');
+  detalhe.dataset.materiaId = id;
   document.getElementById('detalhe-cor').style.background = materia.cor;
   document.getElementById('detalhe-nome').textContent = materia.nome;
   const horarioTexto = formatarHorarios(HORARIOS_POR_MATERIA[materia.id]);
@@ -540,7 +567,7 @@ async function abrirDetalheMateria(id) {
   document.getElementById('detalhe-info').textContent =
     [`${tipoIcon} ${tipoInfo.label}`, materia.professor, horarioTexto].filter(Boolean).join(' · ');
 
-  document.getElementById('detalhe-materia').scrollIntoView({ behavior: 'smooth' });
+  detalhe.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 
   document.getElementById('link-ver-arquivos').href = `arquivos.html?materia=${id}`;
 
