@@ -527,33 +527,9 @@ async function excluirMateria(id) {
 // DETALHE DA MATÉRIA
 // =========================================================
 
-function posicionarDetalheAposCard(id) {
-  const container = document.getElementById('lista-materias');
-  const detalheEl = document.getElementById('detalhe-materia');
-  const cards = Array.from(container.querySelectorAll('.materia-card'));
-  const idx = cards.findIndex(c => c.dataset.id === id);
-
-  // Se não achou o card (ex: veio direto por link com ?id=), deixa o
-  // painel no final da lista, como antes.
-  if (idx === -1) {
-    container.insertAdjacentElement('afterend', detalheEl);
-    return;
-  }
-
-  // Descobre quantas colunas o grid tem no momento (3 no desktop, 1 no
-  // celular) para inserir o painel logo após o ÚLTIMO card da mesma
-  // linha do card clicado — assim ele aparece imediatamente abaixo,
-  // ocupando a linha inteira, sem precisar rolar a página para baixo.
-  const colunas = getComputedStyle(container).gridTemplateColumns.split(' ').length || 1;
-  const fimDaLinha = Math.min(idx - (idx % colunas) + colunas - 1, cards.length - 1);
-  cards[fimDaLinha].insertAdjacentElement('afterend', detalheEl);
-}
-
 async function abrirDetalheMateria(id) {
   const materia = MATERIAS_CACHE.find(m => m.id === id) || await buscarMateriaPorId(id);
   if (!materia) return;
-
-  posicionarDetalheAposCard(id);
 
   document.getElementById('detalhe-materia').classList.remove('hidden');
   document.getElementById('detalhe-cor').style.background = materia.cor;
@@ -564,13 +540,17 @@ async function abrirDetalheMateria(id) {
   document.getElementById('detalhe-info').textContent =
     [`${tipoIcon} ${tipoInfo.label}`, materia.professor, horarioTexto].filter(Boolean).join(' · ');
 
-  document.getElementById('detalhe-materia').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  document.getElementById('detalhe-materia').scrollIntoView({ behavior: 'smooth' });
 
-  const [{ data: tarefas }, { data: anotacoes }] = await Promise.all([
+  document.getElementById('link-ver-arquivos').href = `arquivos.html?materia=${id}`;
+
+  const [{ data: tarefas }, { data: anotacoes }, { data: arquivos }] = await Promise.all([
     supabaseClient.from('tarefas').select('*').eq('materia_id', id).eq('user_id', USUARIO_ATUAL.id)
       .order('data_entrega', { ascending: true }),
     supabaseClient.from('anotacoes').select('*').eq('materia_id', id).eq('user_id', USUARIO_ATUAL.id)
       .order('data', { ascending: false }),
+    supabaseClient.from('arquivos').select('*').eq('materia_id', id).eq('usuario_id', USUARIO_ATUAL.id)
+      .order('created_at', { ascending: false }),
   ]);
 
   const tarefasEl = document.getElementById('detalhe-tarefas');
@@ -654,6 +634,82 @@ async function abrirDetalheMateria(id) {
         <p>Nenhuma anotação para esta matéria.</p>
       </div>
     `;
+
+  const arquivosEl = document.getElementById('detalhe-arquivos');
+  arquivosEl.innerHTML = (arquivos && arquivos.length)
+    ? arquivos.map(a => `
+      <div class="item-row item-row--clickable" data-arquivo-id="${a.id}" style="cursor:pointer;">
+        <div class="item-row__main">
+          <div class="item-row__title">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px;flex-shrink:0;">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+              <polyline points="14 2 14 8 20 8"/>
+              <line x1="16" y1="13" x2="8" y2="13"/>
+              <line x1="16" y1="17" x2="8" y2="17"/>
+            </svg>
+            ${escapeHTML(a.titulo)}
+          </div>
+          <div class="item-row__meta">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:12px;height:12px;flex-shrink:0;">
+              <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+              <line x1="16" y1="2" x2="16" y2="6"/>
+              <line x1="8" y1="2" x2="8" y2="6"/>
+              <line x1="3" y1="10" x2="21" y2="10"/>
+            </svg>
+            ${formatarDataRelativa(a.created_at)}
+          </div>
+        </div>
+      </div>
+    `).join('')
+    : `
+      <div class="empty-state">
+        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+          <polyline points="14 2 14 8 20 8"/>
+          <line x1="16" y1="13" x2="8" y2="13"/>
+          <line x1="16" y1="17" x2="8" y2="17"/>
+        </svg>
+        <p>Nenhum arquivo para esta matéria.</p>
+      </div>
+    `;
+
+  arquivosEl.querySelectorAll('[data-arquivo-id]').forEach(el => {
+    el.addEventListener('click', () => {
+      const arquivo = arquivos.find(a => a.id === el.dataset.arquivoId);
+      if (arquivo) baixarArquivoDetalhe(arquivo);
+    });
+  });
+}
+
+// =========================================================
+// DOWNLOAD DE ARQUIVO (a partir do detalhe da matéria)
+// =========================================================
+
+async function baixarArquivoDetalhe(arquivo) {
+  try {
+    mostrarToast('Baixando arquivo...', 'info');
+
+    const { data, error } = await supabaseClient.storage
+      .from('arquivos')
+      .download(arquivo.caminho_arquivo);
+
+    if (error) throw error;
+
+    const blob = new Blob([data], { type: arquivo.tipo_arquivo || 'application/octet-stream' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = arquivo.nome_arquivo;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+
+    mostrarToast('Download iniciado!', 'success');
+  } catch (error) {
+    console.error('Erro no download:', error);
+    mostrarToast(`Erro ao baixar arquivo: ${error.message}`, 'error');
+  }
 }
 
 async function buscarMateriaPorId(id) {
