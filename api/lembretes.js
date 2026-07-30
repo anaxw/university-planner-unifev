@@ -12,12 +12,22 @@ module.exports = async function handler(req, res) {
     return res.status(401).json({ erro: 'Não autorizado' });
   }
 
-  const supabaseAdmin = createClient(
-    process.env.SUPABASE_URL,
-    process.env.SUPABASE_SERVICE_ROLE_KEY,
-  );
+  const faltando = ['SUPABASE_URL', 'SUPABASE_SERVICE_ROLE_KEY', 'TELEGRAM_BOT_TOKEN']
+    .filter((nome) => !process.env[nome]);
+
+  if (faltando.length > 0) {
+    return res.status(500).json({
+      ok: false,
+      erro: `Variáveis de ambiente faltando na Vercel: ${faltando.join(', ')}`,
+    });
+  }
 
   try {
+    const supabaseAdmin = createClient(
+      process.env.SUPABASE_URL,
+      process.env.SUPABASE_SERVICE_ROLE_KEY,
+    );
+
     const agora = new Date();
 
     const { data: usuarios, error: errUsuarios } = await supabaseAdmin
