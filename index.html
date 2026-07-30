@@ -6,10 +6,55 @@
 <title>Entrar — Rotina Faculdade</title>
 <link rel="stylesheet" href="css/style.css">
 <link rel="stylesheet" href="css/components.css">
+<style>
+  .auth-page {
+    position: relative;
+    min-height: 100vh;
+    overflow: hidden;
+    background: linear-gradient(160deg, #050b1f 0%, #0a1533 25%, #0e1f4a 50%, #122a63 75%, #0a1533 100%);
+    background-size: 200% 200%;
+    animation: authGradientShift 18s ease-in-out infinite;
+  }
+
+  @keyframes authGradientShift {
+    0%   { background-position: 0% 0%; }
+    50%  { background-position: 100% 100%; }
+    100% { background-position: 0% 0%; }
+  }
+
+  .sparkle-layer {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .sparkle {
+    position: absolute;
+    border-radius: 50%;
+    background: #ffffff;
+    box-shadow: 0 0 6px 1px rgba(255, 255, 255, 0.8);
+    opacity: 0;
+    animation-name: sparkleTwinkle;
+    animation-timing-function: ease-in-out;
+    animation-iteration-count: infinite;
+  }
+
+  @keyframes sparkleTwinkle {
+    0%, 100% { opacity: 0; transform: scale(0.4); }
+    50%      { opacity: 1; transform: scale(1); }
+  }
+
+  .auth-card {
+    position: relative;
+    z-index: 1;
+  }
+</style>
 </head>
 <body data-page="login">
 
   <div class="auth-page">
+    <div class="sparkle-layer" id="sparkleLayer"></div>
     <div class="auth-card">
       <div class="auth-brand">
         <img src="img/logo_completo.png" alt="Rotina Faculdade" class="auth-logo">
@@ -87,6 +132,25 @@
     </div>
   </div>
 
+  <script>
+    (function () {
+      var layer = document.getElementById('sparkleLayer');
+      if (!layer) return;
+      var count = 60;
+      for (var i = 0; i < count; i++) {
+        var s = document.createElement('div');
+        s.className = 'sparkle';
+        var size = (Math.random() * 2.5 + 1).toFixed(2);
+        s.style.width = size + 'px';
+        s.style.height = size + 'px';
+        s.style.top = (Math.random() * 100).toFixed(2) + '%';
+        s.style.left = (Math.random() * 100).toFixed(2) + '%';
+        s.style.animationDuration = (Math.random() * 3 + 2).toFixed(2) + 's';
+        s.style.animationDelay = (Math.random() * 5).toFixed(2) + 's';
+        layer.appendChild(s);
+      }
+    })();
+  </script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="js/supabaseClient.js"></script>
   <script src="js/utils.js"></script>
