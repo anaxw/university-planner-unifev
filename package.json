@@ -1,9 +1,0 @@
-{
-  "name": "faculdade-planner",
-  "version": "1.0.0",
-  "private": true,
-  "description": "Sistema pessoal de organização da rotina da faculdade (front-end estático + funções serverless de lembretes via Telegram).",
-  "dependencies": {
-    "@supabase/supabase-js": "^2.45.0"
-  }
-}
