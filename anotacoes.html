@@ -33,7 +33,7 @@
         </div>
       </div>
 
-      <div class="flex items-center justify-between" style="flex-wrap:wrap; gap:12px; margin-bottom:20px;">
+      <div class="notes-toolbar-row">
         <div class="search-box">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <circle cx="11" cy="11" r="8"/>
@@ -41,12 +41,12 @@
           </svg>
           <input class="input" id="busca-anotacao" placeholder="Pesquisar por título...">
         </div>
-        <select class="select" id="filtro-materia-nota" style="max-width:220px;">
+        <select class="select notes-materia-filter" id="filtro-materia-nota">
           <option value="">Todas as matérias</option>
         </select>
       </div>
 
-      <div class="notes-layout">
+      <div class="notes-layout" id="notes-layout">
         <!-- Coluna esquerda: lista de anotações -->
         <div class="notes-list" id="lista-anotacoes">
           <div class="loading-spinner"></div>
@@ -67,6 +67,11 @@
 
           <div class="notes-detail__editor" id="notes-detail-editor" style="display:none;">
             <div class="notes-detail__header">
+              <button type="button" class="notes-detail__back" id="btn-voltar-nota" aria-label="Voltar para a lista">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="15 18 9 12 15 6"/>
+                </svg>
+              </button>
               <input type="text" id="detail-titulo" class="notes-detail__title-input" placeholder="Título da anotação">
               <button type="button" class="notes-detail__fav" id="btn-favoritar" title="Favoritar">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
