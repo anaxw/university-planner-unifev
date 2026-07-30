@@ -30,6 +30,14 @@ module.exports = async function handler(req, res) {
   }
 
   try {
+    const faltando = ['SUPABASE_URL', 'SUPABASE_SERVICE_ROLE_KEY', 'TELEGRAM_BOT_TOKEN']
+      .filter((nome) => !process.env[nome]);
+
+    if (faltando.length > 0) {
+      console.error(`Variáveis de ambiente faltando na Vercel: ${faltando.join(', ')}`);
+      return res.status(200).json({ ok: false });
+    }
+
     const update = req.body;
     const mensagem = update?.message;
 
