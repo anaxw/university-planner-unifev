@@ -182,6 +182,118 @@
   margin-top: 1px;
 }
 
+/* =========================================================
+   VERSÃO MOBILE — dias empilhados (um embaixo do outro)
+   ========================================================= */
+
+.grade-dias-mobile {
+  display: none;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.grade-dia-card {
+  border: 1px solid var(--gray-light);
+  border-radius: 12px;
+  overflow: hidden;
+  background: var(--bg);
+}
+
+.grade-dia-card__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  background: var(--gray-light);
+}
+
+.grade-dia-card__nome {
+  font-weight: 700;
+  font-size: 14px;
+  color: var(--text);
+}
+
+.grade-dia-card__contagem {
+  font-size: 11px;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+.grade-dia-card__body {
+  padding: 8px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.grade-dia-card__vazio {
+  padding: 14px 4px;
+  text-align: center;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.grade-item-mobile {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  border-left: 4px solid var(--primary);
+  background: color-mix(in srgb, currentColor 6%, var(--bg));
+}
+
+.grade-item-mobile__info {
+  flex: 1;
+  min-width: 0;
+}
+
+.grade-item-mobile__nome {
+  font-weight: 700;
+  font-size: 13px;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.grade-item-mobile__horario {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-top: 1px;
+}
+
+.grade-item-mobile .grade-badge {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 9px;
+  font-weight: 600;
+  padding: 3px 7px;
+  border-radius: 6px;
+}
+
+.grade-item-mobile .grade-badge svg {
+  width: 10px;
+  height: 10px;
+}
+
+.grade-intervalo-mobile {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-muted);
+  font-weight: 600;
+  padding: 5px 0;
+  background: repeating-linear-gradient(45deg, #f1f2f5, #f1f2f5 6px, #e9eaee 6px, #e9eaee 12px);
+  border-radius: 6px;
+}
+
 /* Estado vazio */
 .grade-vazio {
   padding: 40px 20px;
@@ -238,35 +350,15 @@
 
 /* Responsividade */
 @media (max-width: 768px) {
-  .grade-col {
-    min-width: 100px;
+  /* Esconde a grade em colunas e mostra os dias empilhados */
+  .grade-wrap {
+    display: none;
   }
-  
-  .grade-eixo {
-    width: 40px;
+
+  .grade-dias-mobile {
+    display: flex;
   }
-  
-  .grade-col__body {
-    height: 480px;
-  }
-  
-  .grade-eixo {
-    height: 480px;
-  }
-  
-  .grade-bloco {
-    padding: 4px 6px;
-    font-size: 10px;
-  }
-  
-  .grade-bloco__nome {
-    font-size: 10px;
-  }
-  
-  .grade-bloco__horario {
-    font-size: 8px;
-  }
-  
+
   .grade-legenda__item {
     font-size: 12px;
     padding: 4px 8px;
@@ -274,54 +366,26 @@
 }
 
 @media (max-width: 480px) {
-  .grade-col {
-    min-width: 80px;
-  }
-  
-  .grade-eixo {
-    width: 34px;
-    font-size: 9px;
-  }
-  
-  .grade-col__body {
-    height: 400px;
-  }
-  
-  .grade-eixo {
-    height: 400px;
-  }
-  
-  .grade-col__header {
-    font-size: 11px;
-  }
-  
-  .grade-bloco {
-    padding: 3px 4px;
-    font-size: 8px;
-    left: 2px;
-    right: 2px;
-  }
-  
-  .grade-bloco__nome {
-    font-size: 8px;
-  }
-  
-  .grade-bloco__horario {
-    font-size: 7px;
-  }
-  
   .grade-legenda__item {
     font-size: 11px;
     padding: 3px 6px;
   }
-  
+
   .grade-legenda__dot {
     width: 8px;
     height: 8px;
   }
-  
-  .grade-intervalo {
-    font-size: 8px;
+
+  .grade-dia-card__nome {
+    font-size: 13px;
+  }
+
+  .grade-item-mobile__nome {
+    font-size: 12px;
+  }
+
+  .grade-item-mobile__horario {
+    font-size: 10px;
   }
 }
 </style>
