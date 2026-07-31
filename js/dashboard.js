@@ -24,6 +24,7 @@ let USUARIO_DASH = null;
     weekday: 'long', 
     day: 'numeric', 
     month: 'long',
+    timeZone: 'America/Sao_Paulo',
   });
 
   await Promise.all([
@@ -214,7 +215,7 @@ async function carregarMateriasDashboard() {
 // =========================================================
 
 async function renderizarMiniCalendario() {
-  const hoje = new Date();
+  const hoje = getAgoraBrasilia();
   const container = document.getElementById('mini-calendario');
 
   const inicioMes = new Date(hoje.getFullYear(), hoje.getMonth(), 1);
