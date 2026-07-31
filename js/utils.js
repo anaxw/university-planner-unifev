@@ -252,6 +252,94 @@ document.addEventListener('click', (e) => {
   }
 });
 
+/** Ícones usados no modal de confirmação */
+const ICONES_CONFIRMACAO = {
+  danger: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>',
+  warning: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>',
+  info: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>',
+};
+
+/**
+ * Exibe um modal de confirmação e retorna uma Promise<boolean> que resolve
+ * com `true` se o usuário confirmar e `false` se cancelar/fechar.
+ * Substitui o `confirm()` nativo do navegador em toda a aplicação.
+ *
+ * Uso:
+ *   const ok = await confirmarAcao('Excluir esta tarefa?');
+ *   const ok = await confirmarAcao({ titulo: 'Excluir matéria', mensagem: '...', tipo: 'danger' });
+ */
+function confirmarAcao(opcoesOuMensagem) {
+  const opcoes = typeof opcoesOuMensagem === 'string'
+    ? { mensagem: opcoesOuMensagem }
+    : (opcoesOuMensagem || {});
+
+  const {
+    titulo = 'Confirmar ação',
+    mensagem = 'Tem certeza que deseja continuar?',
+    tipo = 'danger', // 'danger' | 'warning' | 'info'
+    textoConfirmar = 'Confirmar',
+    textoCancelar = 'Cancelar',
+  } = opcoes;
+
+  return new Promise((resolve) => {
+    let overlay = document.getElementById('modal-confirmacao-global');
+
+    if (!overlay) {
+      overlay = document.createElement('div');
+      overlay.id = 'modal-confirmacao-global';
+      overlay.className = 'modal-overlay';
+      overlay.innerHTML = `
+        <div class="modal modal-confirm">
+          <div class="modal-confirm__icon"></div>
+          <h3 class="modal-confirm__titulo"></h3>
+          <p class="modal-confirm__mensagem"></p>
+          <div class="modal-actions">
+            <button type="button" class="btn btn-secondary" data-acao="cancelar"></button>
+            <button type="button" class="btn btn-danger" data-acao="confirmar"></button>
+          </div>
+        </div>
+      `;
+      document.body.appendChild(overlay);
+    }
+
+    const iconEl = overlay.querySelector('.modal-confirm__icon');
+    const tituloEl = overlay.querySelector('.modal-confirm__titulo');
+    const mensagemEl = overlay.querySelector('.modal-confirm__mensagem');
+    const btnCancelar = overlay.querySelector('[data-acao="cancelar"]');
+    const btnConfirmar = overlay.querySelector('[data-acao="confirmar"]');
+
+    tituloEl.textContent = titulo;
+    mensagemEl.textContent = mensagem;
+    btnCancelar.textContent = textoCancelar;
+    btnConfirmar.textContent = textoConfirmar;
+    btnConfirmar.className = `btn ${tipo === 'danger' ? 'btn-danger' : 'btn-primary'}`;
+    iconEl.className = `modal-confirm__icon is-${tipo}`;
+    iconEl.innerHTML = ICONES_CONFIRMACAO[tipo] || ICONES_CONFIRMACAO.warning;
+
+    const finalizar = (resultado) => {
+      overlay.classList.remove('open');
+      btnCancelar.removeEventListener('click', onCancelar);
+      btnConfirmar.removeEventListener('click', onConfirmar);
+      overlay.removeEventListener('click', onCliqueFora);
+      document.removeEventListener('keydown', onTecla);
+      resolve(resultado);
+    };
+
+    const onCancelar = () => finalizar(false);
+    const onConfirmar = () => finalizar(true);
+    const onCliqueFora = (e) => { if (e.target === overlay) finalizar(false); };
+    const onTecla = (e) => { if (e.key === 'Escape') finalizar(false); };
+
+    btnCancelar.addEventListener('click', onCancelar);
+    btnConfirmar.addEventListener('click', onConfirmar);
+    overlay.addEventListener('click', onCliqueFora);
+    document.addEventListener('keydown', onTecla);
+
+    overlay.classList.add('open');
+    btnConfirmar.focus();
+  });
+}
+
 /** Debounce simples para campos de busca */
 function debounce(fn, delay = 300) {
   let timer = null;
