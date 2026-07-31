@@ -525,7 +525,13 @@ async function salvarMateria(e) {
 // =========================================================
 
 async function excluirMateria(id) {
-  if (!confirm('Excluir esta matéria? As tarefas e anotações vinculadas ficarão sem matéria associada.')) return;
+  const ok = await confirmarAcao({
+    titulo: 'Excluir matéria',
+    mensagem: 'Excluir esta matéria? As tarefas e anotações vinculadas ficarão sem matéria associada. Esta ação não pode ser desfeita.',
+    tipo: 'danger',
+    textoConfirmar: 'Excluir',
+  });
+  if (!ok) return;
 
   const { error } = await supabaseClient.from('materias').delete().eq('id', id);
   if (error) {
