@@ -63,6 +63,14 @@ async function gerarCodigoVinculacao() {
 }
 
 async function desvincularTelegram() {
+  const ok = await confirmarAcao({
+    titulo: 'Desvincular Telegram',
+    mensagem: 'Tem certeza que deseja desvincular sua conta do Telegram? Você deixará de receber lembretes por lá.',
+    tipo: 'warning',
+    textoConfirmar: 'Desvincular',
+  });
+  if (!ok) return;
+
   const { error } = await supabaseClient
     .from('usuarios')
     .update({ telegram_chat_id: null, telegram_link_code: null })
@@ -204,6 +212,14 @@ async function adicionarRegra() {
 }
 
 async function removerRegra(id) {
+  const ok = await confirmarAcao({
+    titulo: 'Remover lembrete',
+    mensagem: 'Tem certeza que deseja remover este lembrete?',
+    tipo: 'danger',
+    textoConfirmar: 'Remover',
+  });
+  if (!ok) return;
+
   const { error } = await supabaseClient
     .from('lembrete_regras')
     .delete()
