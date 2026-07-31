@@ -80,7 +80,9 @@ function formatarData(dataStr) {
 function formatarDataBrasilia(data, incluirHora = false) {
   if (!data) return '';
   try {
-    const agora = new Date(data);
+    const str = String(data);
+    // mesma proteção: string só-de-data vira UTC-midnight, então força hora local
+    const agora = new Date(str.length <= 10 ? `${str}T00:00:00` : str);
     if (isNaN(agora.getTime())) return String(data);
     const d = new Date(agora.toLocaleString('en-US', { timeZone: 'America/Sao_Paulo' }));
 
@@ -123,7 +125,12 @@ function formatarDataRelativaBrasilia(dataStr) {
   if (!dataStr) return 'Sem data';
 
   try {
-    const data = new Date(dataStr);
+    // Importante: NÃO usar `new Date(dataStr)` aqui. Uma string só de
+    // data ("YYYY-MM-DD") é interpretada pelo JS como meia-noite em UTC,
+    // o que "puxa" a data um dia para trás quando lida no fuso de
+    // Brasília (UTC-3). Por isso anexamos T00:00:00 (sem offset), que o
+    // JS interpreta como meia-noite no fuso local do dispositivo.
+    const data = new Date(dataStr.length <= 10 ? `${dataStr}T00:00:00` : dataStr);
     if (isNaN(data.getTime())) return String(dataStr);
 
     const agora = getAgoraBrasilia();
