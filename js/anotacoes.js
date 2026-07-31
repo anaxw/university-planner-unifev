@@ -122,10 +122,15 @@ function destacarItemAtivo() {
   });
 }
 
-function abrirPainelAnotacao(anotacao) {
+async function abrirPainelAnotacao(anotacao) {
   // Se há alterações não salvas, confirma antes de trocar de anotação
   if (NOTA_SUJA) {
-    const continuar = confirm('Você tem alterações não salvas. Deseja descartá-las?');
+    const continuar = await confirmarAcao({
+      titulo: 'Alterações não salvas',
+      mensagem: 'Você tem alterações não salvas. Deseja descartá-las?',
+      tipo: 'warning',
+      textoConfirmar: 'Descartar',
+    });
     if (!continuar) return;
   }
 
@@ -150,9 +155,14 @@ function abrirPainelAnotacao(anotacao) {
 }
 
 // Fecha o editor e volta para a lista (botão "Voltar", usado no mobile)
-function fecharPainelAnotacao() {
+async function fecharPainelAnotacao() {
   if (NOTA_SUJA) {
-    const continuar = confirm('Você tem alterações não salvas. Deseja descartá-las?');
+    const continuar = await confirmarAcao({
+      titulo: 'Alterações não salvas',
+      mensagem: 'Você tem alterações não salvas. Deseja descartá-las?',
+      tipo: 'warning',
+      textoConfirmar: 'Descartar',
+    });
     if (!continuar) return;
   }
 
@@ -222,7 +232,13 @@ async function salvarAnotacaoPainel() {
 }
 
 async function excluirAnotacao(id) {
-  if (!confirm('Excluir esta anotação?')) return;
+  const ok = await confirmarAcao({
+    titulo: 'Excluir anotação',
+    mensagem: 'Tem certeza que deseja excluir esta anotação? Esta ação não pode ser desfeita.',
+    tipo: 'danger',
+    textoConfirmar: 'Excluir',
+  });
+  if (!ok) return;
 
   const { error } = await supabaseClient.from('anotacoes').delete().eq('id', id);
   if (error) {
