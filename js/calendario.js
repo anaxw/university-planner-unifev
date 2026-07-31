@@ -3,8 +3,8 @@
 // =========================================================
 
 let USUARIO_CAL = null;
-let MES_ATUAL = new Date().getMonth();
-let ANO_ATUAL = new Date().getFullYear();
+let MES_ATUAL = getAgoraBrasilia().getMonth();
+let ANO_ATUAL = getAgoraBrasilia().getFullYear();
 let DIA_SELECIONADO = null;
 let ITENS_DO_MES = {}; // { 'YYYY-MM-DD': [ {titulo, tipo, cor, origem} ] }
 
