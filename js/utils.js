@@ -26,6 +26,48 @@ const MESES = [
   'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro',
 ];
 
+// =========================================================
+// UTILITÁRIOS DE DATA/HORA — HORÁRIO DE BRASÍLIA (fonte única)
+// Todas as páginas devem usar estas funções em vez de `new Date()`
+// puro, para não depender do fuso configurado no dispositivo.
+// =========================================================
+
+/** Retorna um objeto Date cujos campos (getFullYear/getMonth/getDate/
+ * getHours/getMinutes) já refletem o horário de Brasília (America/Sao_Paulo). */
+function getAgoraBrasilia() {
+  const agora = new Date();
+  return new Date(agora.toLocaleString('en-US', { timeZone: 'America/Sao_Paulo' }));
+}
+
+/** Converte 'YYYY-MM-DD' (+ 'HH:MM' opcional) para um instante real
+ * no horário de Brasília (UTC-3), respeitando corretamente o fuso. */
+function criarDataBrasilia(dataStr, horaStr = '23:59:59') {
+  if (!dataStr) return null;
+
+  try {
+    const horaFinal = horaStr || '23:59:59';
+    const data = new Date(`${dataStr}T${horaFinal}-03:00`);
+
+    if (isNaN(data.getTime())) {
+      const partes = dataStr.split('-');
+      const horaPartes = horaFinal.split(':');
+      return new Date(
+        parseInt(partes[0]),
+        parseInt(partes[1]) - 1,
+        parseInt(partes[2]),
+        parseInt(horaPartes[0]),
+        parseInt(horaPartes[1]),
+        parseInt(horaPartes[2] || 0),
+      );
+    }
+
+    return data;
+  } catch (error) {
+    console.error('Erro ao criar data Brasília:', error);
+    return null;
+  }
+}
+
 /** Formata 'YYYY-MM-DD' para 'DD/MM/AAAA' */
 function formatarData(dataStr) {
   if (!dataStr) return '';
@@ -33,10 +75,36 @@ function formatarData(dataStr) {
   return `${dia}/${mes}/${ano}`;
 }
 
-/** Formata data para exibição relativa curta (ex: "Hoje", "Amanhã", "12 Jun") */
+/** Formata uma data/timestamp (ISO ou Date) para o padrão brasileiro,
+ * exibindo hora/minuto no horário de Brasília quando `incluirHora` for true. */
+function formatarDataBrasilia(data, incluirHora = false) {
+  if (!data) return '';
+  try {
+    const agora = new Date(data);
+    if (isNaN(agora.getTime())) return String(data);
+    const d = new Date(agora.toLocaleString('en-US', { timeZone: 'America/Sao_Paulo' }));
+
+    const dia = String(d.getDate()).padStart(2, '0');
+    const mes = String(d.getMonth() + 1).padStart(2, '0');
+    const ano = d.getFullYear();
+
+    if (incluirHora) {
+      const hora = String(d.getHours()).padStart(2, '0');
+      const min = String(d.getMinutes()).padStart(2, '0');
+      return `${dia}/${mes}/${ano} ${hora}:${min}`;
+    }
+
+    return `${dia}/${mes}/${ano}`;
+  } catch {
+    return String(data);
+  }
+}
+
+/** Formata data para exibição relativa curta (ex: "Hoje", "Amanhã", "12 Jun"),
+ * sempre comparando contra o "hoje" no horário de Brasília. */
 function formatarDataRelativa(dataStr) {
   if (!dataStr) return '';
-  const hoje = new Date();
+  const hoje = getAgoraBrasilia();
   hoje.setHours(0, 0, 0, 0);
   const data = new Date(dataStr + 'T00:00:00');
   const diffDias = Math.round((data - hoje) / 86400000);
@@ -49,9 +117,71 @@ function formatarDataRelativa(dataStr) {
   return `${data.getDate()} ${MESES[data.getMonth()].slice(0, 3)}`;
 }
 
-/** Retorna 'YYYY-MM-DD' de hoje */
+/** Formata data de forma relativa mais detalhada (usada em tarefas),
+ * no horário de Brasília. */
+function formatarDataRelativaBrasilia(dataStr) {
+  if (!dataStr) return 'Sem data';
+
+  try {
+    const data = new Date(dataStr);
+    if (isNaN(data.getTime())) return String(dataStr);
+
+    const agora = getAgoraBrasilia();
+    const hoje = new Date(agora.getFullYear(), agora.getMonth(), agora.getDate());
+    const dataComparacao = new Date(data.getFullYear(), data.getMonth(), data.getDate());
+    const diffDias = Math.floor((dataComparacao - hoje) / (1000 * 60 * 60 * 24));
+
+    if (diffDias < 0) {
+      const dias = Math.abs(diffDias);
+      if (dias === 0) return 'Hoje (atrasado)';
+      if (dias === 1) return 'Ontem';
+      return `${dias} dias atrás`;
+    }
+
+    if (diffDias === 0) return 'Hoje';
+    if (diffDias === 1) return 'Amanhã';
+    if (diffDias < 7) return `${diffDias} dias`;
+    if (diffDias < 30) return `${Math.floor(diffDias / 7)} semanas`;
+    if (diffDias < 365) return `${Math.floor(diffDias / 30)} meses`;
+    return `${Math.floor(diffDias / 365)} anos`;
+  } catch {
+    return String(dataStr);
+  }
+}
+
+/** Formata hora no padrão HH:MM */
+function formatarHoraBrasilia(hora) {
+  if (!hora) return '';
+  try {
+    const [h, m] = hora.split(':');
+    return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+  } catch {
+    return hora;
+  }
+}
+
+/** Formata data completa com hora no padrão brasileiro, no horário de Brasília. */
+function formatarDataCompletaBrasilia(dataStr, horaStr = null) {
+  if (!dataStr) return '';
+  try {
+    const data = criarDataBrasilia(dataStr, horaStr);
+    if (!data) return String(dataStr);
+
+    const dia = String(data.getDate()).padStart(2, '0');
+    const mes = String(data.getMonth() + 1).padStart(2, '0');
+    const ano = data.getFullYear();
+    const hora = String(data.getHours()).padStart(2, '0');
+    const min = String(data.getMinutes()).padStart(2, '0');
+
+    return `${dia}/${mes}/${ano} às ${hora}:${min}`;
+  } catch {
+    return String(dataStr);
+  }
+}
+
+/** Retorna 'YYYY-MM-DD' do dia de hoje, sempre no horário de Brasília. */
 function hojeISO() {
-  const d = new Date();
+  const d = getAgoraBrasilia();
   const mes = String(d.getMonth() + 1).padStart(2, '0');
   const dia = String(d.getDate()).padStart(2, '0');
   return `${d.getFullYear()}-${mes}-${dia}`;
