@@ -277,7 +277,7 @@ function tempoRelativo(dataISO) {
   if (!dataISO) return '';
 
   const data = new Date(dataISO + 'T00:00:00');
-  const hoje = new Date();
+  const hoje = getAgoraBrasilia();
   hoje.setHours(0, 0, 0, 0);
 
   const diffMs = hoje - data;
