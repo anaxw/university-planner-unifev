@@ -290,6 +290,7 @@ function confirmarAcao(opcoesOuMensagem) {
       overlay.className = 'modal-overlay';
       overlay.innerHTML = `
         <div class="modal modal-confirm">
+          <button type="button" class="modal-confirm__close" data-acao="fechar" aria-label="Fechar">&times;</button>
           <div class="modal-confirm__icon"></div>
           <h3 class="modal-confirm__titulo"></h3>
           <p class="modal-confirm__mensagem"></p>
@@ -307,6 +308,7 @@ function confirmarAcao(opcoesOuMensagem) {
     const mensagemEl = overlay.querySelector('.modal-confirm__mensagem');
     const btnCancelar = overlay.querySelector('[data-acao="cancelar"]');
     const btnConfirmar = overlay.querySelector('[data-acao="confirmar"]');
+    const btnFechar = overlay.querySelector('[data-acao="fechar"]');
 
     tituloEl.textContent = titulo;
     mensagemEl.textContent = mensagem;
@@ -322,6 +324,7 @@ function confirmarAcao(opcoesOuMensagem) {
       btnConfirmar.removeEventListener('click', onConfirmar);
       overlay.removeEventListener('click', onCliqueFora);
       document.removeEventListener('keydown', onTecla);
+      btnFechar.removeEventListener('click', onCancelar);
       resolve(resultado);
     };
 
@@ -332,6 +335,7 @@ function confirmarAcao(opcoesOuMensagem) {
 
     btnCancelar.addEventListener('click', onCancelar);
     btnConfirmar.addEventListener('click', onConfirmar);
+    btnFechar.addEventListener('click', onCancelar);
     overlay.addEventListener('click', onCliqueFora);
     document.addEventListener('keydown', onTecla);
 
