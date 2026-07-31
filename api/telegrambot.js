@@ -125,7 +125,7 @@ function teclaMenuPrincipal() {
   return {
     inline_keyboard: [
       [{ text: '📋 Tarefas', callback_data: 'menu_tarefas' }],
-      [{ text: '📝 Anotações', callback_data: 'menu_em_breve' }],
+      [{ text: '📝 Anotações', callback_data: 'menu_anotacoes' }],
       [{ text: '📁 Arquivos', callback_data: 'menu_em_breve' }],
     ],
   };
@@ -148,6 +148,27 @@ function teclaListarTarefasMenu() {
       [{ text: '📚 Por matéria', callback_data: 'tarefas_listar_por_materia' }],
       [{ text: '🗂️ Todas as matérias', callback_data: 'tarefas_listar_todas' }],
       [{ text: '⬅️ Voltar', callback_data: 'menu_tarefas' }],
+    ],
+  };
+}
+
+function teclaMenuAnotacoes() {
+  return {
+    inline_keyboard: [
+      [{ text: '➕ Adicionar anotação', callback_data: 'anotacoes_add_start' }],
+      [{ text: '📄 Listar anotações', callback_data: 'anotacoes_listar_menu' }],
+      [{ text: '🗑️ Apagar anotação', callback_data: 'anotacoes_apagar_menu' }],
+      [{ text: '⬅️ Voltar', callback_data: 'menu_principal' }],
+    ],
+  };
+}
+
+function teclaListarAnotacoesMenu() {
+  return {
+    inline_keyboard: [
+      [{ text: '📚 Por matéria', callback_data: 'anotacoes_listar_por_materia' }],
+      [{ text: '🗂️ Todas as matérias', callback_data: 'anotacoes_listar_todas' }],
+      [{ text: '⬅️ Voltar', callback_data: 'menu_anotacoes' }],
     ],
   };
 }
@@ -197,6 +218,15 @@ function teclaPrioridade() {
   };
 }
 
+function teclaListaAnotacoes(anotacoes, voltarCallback) {
+  const linhas = anotacoes.map((a) => ([{
+    text: `${truncar(a.titulo, 26)} (${formatarDataBr(a.data)})`,
+    callback_data: `anotacoes_ver_${a.id}`,
+  }]));
+  linhas.push([{ text: '⬅️ Voltar', callback_data: voltarCallback || 'menu_anotacoes' }]);
+  return { inline_keyboard: linhas };
+}
+
 function teclaConfirmarCancelar(confirmarCb, cancelarCb) {
   return {
     inline_keyboard: [
@@ -227,6 +257,14 @@ function formatarDataBr(isoDate) {
   if (!isoDate) return 'sem data';
   const [ano, mes, dia] = isoDate.split('-');
   return `${dia}/${mes}/${ano}`;
+}
+
+function hojeIso() {
+  const d = new Date();
+  const ano = d.getFullYear();
+  const mes = String(d.getMonth() + 1).padStart(2, '0');
+  const dia = String(d.getDate()).padStart(2, '0');
+  return `${ano}-${mes}-${dia}`;
 }
 
 function parseHora(texto) {
@@ -610,6 +648,326 @@ async function executarFinalizarTarefa(supabaseAdmin, chatId, messageId, usuario
 }
 
 // ---------------------------------------------------------
+// 2. ANOTAÇÕES
+// ---------------------------------------------------------
+
+async function mostrarMenuAnotacoes(supabaseAdmin, chatId, messageId) {
+  await limparEstado(supabaseAdmin, chatId);
+  const texto = '📝 <b>Anotações</b>\n\nEscolha uma opção:';
+  if (messageId) return editarMensagem(chatId, messageId, texto, teclaMenuAnotacoes());
+  return enviarMensagem(chatId, texto, teclaMenuAnotacoes());
+}
+
+// --- 2.1 ADICIONAR ANOTAÇÃO ---
+
+async function iniciarAdicionarAnotacao(supabaseAdmin, chatId, messageId, usuario) {
+  const { data: materias, error } = await supabaseAdmin
+    .from('materias')
+    .select('id, nome')
+    .eq('user_id', usuario.id)
+    .order('nome', { ascending: true });
+
+  if (error) {
+    console.error('Erro ao buscar matérias:', error);
+    return editarMensagem(chatId, messageId, '❌ Erro ao buscar suas matérias. Tente novamente.', teclaMenuAnotacoes());
+  }
+
+  await salvarEstado(supabaseAdmin, chatId, usuario.id, 'anotacao_add', 'materia', {});
+
+  const texto = '➕ <b>Nova anotação</b>\n\nQual matéria é essa anotação?';
+  const teclado = (materias && materias.length > 0)
+    ? teclaMaterias(materias, 'anotacoes_add_materia_', { incluirSemMateria: true, voltarCallback: 'anotacoes_add_cancelar' })
+    : { inline_keyboard: [
+        [{ text: '— Sem matéria —', callback_data: 'anotacoes_add_materia_sem' }],
+        [{ text: '❌ Cancelar', callback_data: 'anotacoes_add_cancelar' }],
+      ] };
+
+  return editarMensagem(chatId, messageId, texto, teclado);
+}
+
+async function receberMateriaAnotacao(supabaseAdmin, chatId, messageId, usuario, materiaIdBruto) {
+  const materiaId = materiaIdBruto === 'sem' ? null : materiaIdBruto;
+  await salvarEstado(supabaseAdmin, chatId, usuario.id, 'anotacao_add', 'titulo', { materia_id: materiaId });
+
+  const texto = '✏️ Qual o <b>título</b> da anotação?\n\n<i>Digite o texto para continuar, ou /cancelar para desistir.</i>';
+  return editarMensagem(chatId, messageId, texto, { inline_keyboard: [[{ text: '❌ Cancelar', callback_data: 'anotacoes_add_cancelar' }]] });
+}
+
+async function receberTituloAnotacao(supabaseAdmin, chatId, usuario, estado, texto) {
+  const titulo = texto.trim();
+  if (!titulo) {
+    return enviarMensagem(chatId, '⚠️ O título não pode ficar vazio. Digite o título da anotação:');
+  }
+  const dados = { ...estado.dados, titulo };
+  await salvarEstado(supabaseAdmin, chatId, usuario.id, 'anotacao_add', 'conteudo', dados);
+  return enviarMensagem(
+    chatId,
+    '📝 Digite o <b>conteúdo</b> da anotação, ou envie <b>-</b> para deixar em branco.',
+  );
+}
+
+async function receberConteudoAnotacao(supabaseAdmin, chatId, usuario, estado, texto) {
+  const conteudo = texto.trim() === '-' ? null : texto.trim();
+  const dados = { ...estado.dados, conteudo };
+  await salvarEstado(supabaseAdmin, chatId, usuario.id, 'anotacao_add', 'data', dados);
+  return enviarMensagem(
+    chatId,
+    '📅 Qual a <b>data</b> dessa anotação?\n\nDigite no formato <b>DD/MM/AAAA</b>, ou envie <b>-</b> para usar hoje.',
+  );
+}
+
+async function receberDataAnotacao(supabaseAdmin, chatId, usuario, estado, texto) {
+  const bruto = texto.trim();
+  let data = hojeIso();
+  if (bruto !== '-') {
+    const iso = parseDataBr(bruto);
+    if (iso === undefined) {
+      return enviarMensagem(chatId, '⚠️ Data inválida. Use o formato <b>DD/MM/AAAA</b> (ex: 25/12/2026), ou envie <b>-</b> para usar hoje.');
+    }
+    data = iso;
+  }
+  const dados = { ...estado.dados, data };
+  return mostrarResumoAnotacao(supabaseAdmin, chatId, usuario, dados);
+}
+
+async function mostrarResumoAnotacao(supabaseAdmin, chatId, usuario, dados) {
+  await salvarEstado(supabaseAdmin, chatId, usuario.id, 'anotacao_add', 'confirmar', dados);
+
+  const materia = await nomeMateria(supabaseAdmin, dados.materia_id);
+  const texto = [
+    '📝 <b>Confira os dados da anotação:</b>',
+    '',
+    `<b>Matéria:</b> ${escapeHTML(materia)}`,
+    `<b>Título:</b> ${escapeHTML(dados.titulo)}`,
+    `<b>Conteúdo:</b> ${dados.conteudo ? escapeHTML(dados.conteudo) : '—'}`,
+    `<b>Data:</b> ${formatarDataBr(dados.data)}`,
+    '',
+    'Confirmar criação?',
+  ].join('\n');
+
+  return enviarMensagem(chatId, texto, teclaConfirmarCancelar('anotacoes_add_confirmar', 'anotacoes_add_cancelar'));
+}
+
+async function confirmarAdicionarAnotacao(supabaseAdmin, chatId, messageId, usuario, estado) {
+  const dados = estado.dados || {};
+  const payload = {
+    user_id: usuario.id,
+    materia_id: dados.materia_id || null,
+    titulo: dados.titulo,
+    conteudo: dados.conteudo || null,
+    data: dados.data || hojeIso(),
+  };
+
+  const { error } = await supabaseAdmin.from('anotacoes').insert(payload);
+  await limparEstado(supabaseAdmin, chatId);
+
+  if (error) {
+    console.error('Erro ao inserir anotação via bot:', error);
+    return editarMensagem(chatId, messageId, '❌ Não consegui salvar a anotação. Tente novamente.', teclaMenuAnotacoes());
+  }
+
+  return finalizarAcao(supabaseAdmin, chatId, messageId, `✅ Anotação "<b>${escapeHTML(dados.titulo)}</b>" adicionada com sucesso!`);
+}
+
+// --- 2.2 LISTAR / VER ANOTAÇÕES ---
+
+async function mostrarListarAnotacoesMenu(supabaseAdmin, chatId, messageId) {
+  await limparEstado(supabaseAdmin, chatId);
+  return editarMensagem(chatId, messageId, '📄 <b>Listar anotações</b>\n\nComo você quer ver?', teclaListarAnotacoesMenu());
+}
+
+async function mostrarSelecionarMateriaParaListarAnotacoes(supabaseAdmin, chatId, messageId, usuario) {
+  const { data: materias, error } = await supabaseAdmin
+    .from('materias')
+    .select('id, nome')
+    .eq('user_id', usuario.id)
+    .order('nome', { ascending: true });
+
+  if (error || !materias || materias.length === 0) {
+    return editarMensagem(chatId, messageId, 'Você ainda não tem matérias cadastradas.', teclaListarAnotacoesMenu());
+  }
+
+  return editarMensagem(
+    chatId,
+    messageId,
+    '📚 Escolha a matéria:',
+    teclaMaterias(materias, 'anotacoes_listar_mat_', { incluirSemMateria: true, voltarCallback: 'anotacoes_listar_menu' }),
+  );
+}
+
+async function listarAnotacoesPorMateria(supabaseAdmin, chatId, messageId, usuario, materiaIdBruto) {
+  const materiaId = materiaIdBruto === 'sem' ? null : materiaIdBruto;
+
+  let query = supabaseAdmin
+    .from('anotacoes')
+    .select('id, titulo, data')
+    .eq('user_id', usuario.id)
+    .order('data', { ascending: false });
+
+  query = materiaId ? query.eq('materia_id', materiaId) : query.is('materia_id', null);
+
+  const { data: anotacoes, error } = await query;
+  const materia = await nomeMateria(supabaseAdmin, materiaId);
+
+  if (error) {
+    return editarMensagem(chatId, messageId, '❌ Erro ao buscar anotações.', teclaListarAnotacoesMenu());
+  }
+
+  if (!anotacoes || anotacoes.length === 0) {
+    return editarMensagem(chatId, messageId, `Nenhuma anotação em <b>${escapeHTML(materia)}</b>.`, teclaListarAnotacoesMenu());
+  }
+
+  return editarMensagem(
+    chatId,
+    messageId,
+    `📚 <b>${escapeHTML(materia)}</b>\n\nToque para ver o conteúdo completo:`,
+    teclaListaAnotacoes(anotacoes, 'anotacoes_listar_menu'),
+  );
+}
+
+async function listarTodasAnotacoes(supabaseAdmin, chatId, messageId, usuario) {
+  const { data: anotacoes, error } = await supabaseAdmin
+    .from('anotacoes')
+    .select('id, titulo, data, materias(nome)')
+    .eq('user_id', usuario.id)
+    .order('data', { ascending: false });
+
+  if (error) {
+    return editarMensagem(chatId, messageId, '❌ Erro ao buscar anotações.', teclaListarAnotacoesMenu());
+  }
+
+  if (!anotacoes || anotacoes.length === 0) {
+    return editarMensagem(chatId, messageId, 'Você ainda não tem nenhuma anotação.', teclaListarAnotacoesMenu());
+  }
+
+  const linhas = anotacoes.map((a) => ([{
+    text: `${truncar(a.materias?.nome || 'Sem matéria', 12)} · ${truncar(a.titulo, 20)} (${formatarDataBr(a.data)})`,
+    callback_data: `anotacoes_ver_${a.id}`,
+  }]));
+  linhas.push([{ text: '⬅️ Voltar', callback_data: 'anotacoes_listar_menu' }]);
+
+  return editarMensagem(chatId, messageId, '🗂️ <b>Todas as anotações</b>\n\nToque para ver o conteúdo completo:', { inline_keyboard: linhas });
+}
+
+async function verAnotacao(supabaseAdmin, chatId, messageId, usuario, anotacaoId) {
+  const { data: anotacao, error } = await supabaseAdmin
+    .from('anotacoes')
+    .select('id, titulo, conteudo, data, materias(nome)')
+    .eq('id', anotacaoId)
+    .eq('user_id', usuario.id)
+    .maybeSingle();
+
+  if (error || !anotacao) {
+    return editarMensagem(chatId, messageId, '❌ Não encontrei essa anotação.', teclaMenuAnotacoes());
+  }
+
+  const texto = [
+    `📝 <b>${escapeHTML(anotacao.titulo)}</b>`,
+    `<i>${escapeHTML(anotacao.materias?.nome || 'Sem matéria')} · ${formatarDataBr(anotacao.data)}</i>`,
+    '',
+    anotacao.conteudo ? escapeHTML(anotacao.conteudo) : '<i>Sem conteúdo.</i>',
+  ].join('\n');
+
+  return editarMensagem(chatId, messageId, texto, {
+    inline_keyboard: [
+      [{ text: '🗑️ Apagar', callback_data: `anotacoes_apagar_direto_${anotacao.id}` }],
+      [{ text: '⬅️ Voltar', callback_data: 'menu_anotacoes' }],
+    ],
+  });
+}
+
+// --- 2.3 APAGAR ANOTAÇÃO ---
+
+async function mostrarApagarSelecionarMateria(supabaseAdmin, chatId, messageId, usuario) {
+  // Só mostra matérias que tenham ao menos uma anotação
+  const { data: anotacoes, error } = await supabaseAdmin
+    .from('anotacoes')
+    .select('materia_id, materias(id, nome)')
+    .eq('user_id', usuario.id);
+
+  if (error) {
+    return editarMensagem(chatId, messageId, '❌ Erro ao buscar anotações.', teclaMenuAnotacoes());
+  }
+
+  if (!anotacoes || anotacoes.length === 0) {
+    return editarMensagem(chatId, messageId, 'Você não tem nenhuma anotação. 🎉', teclaMenuAnotacoes());
+  }
+
+  const materiasMap = new Map();
+  let temSemMateria = false;
+  for (const a of anotacoes) {
+    if (a.materia_id && a.materias) {
+      materiasMap.set(a.materia_id, a.materias.nome);
+    } else {
+      temSemMateria = true;
+    }
+  }
+
+  const materias = Array.from(materiasMap.entries()).map(([id, nome]) => ({ id, nome }));
+  materias.sort((a, b) => a.nome.localeCompare(b.nome));
+
+  const linhas = materias.map((m) => ([{ text: truncar(m.nome, 28), callback_data: `anotacoes_apagar_mat_${m.id}` }]));
+  if (temSemMateria) linhas.push([{ text: '— Sem matéria —', callback_data: 'anotacoes_apagar_mat_sem' }]);
+  linhas.push([{ text: '⬅️ Voltar', callback_data: 'menu_anotacoes' }]);
+
+  return editarMensagem(chatId, messageId, '🗑️ <b>Apagar anotação</b>\n\nQual matéria?', { inline_keyboard: linhas });
+}
+
+async function mostrarApagarSelecionarAnotacao(supabaseAdmin, chatId, messageId, usuario, materiaIdBruto) {
+  const materiaId = materiaIdBruto === 'sem' ? null : materiaIdBruto;
+
+  let query = supabaseAdmin
+    .from('anotacoes')
+    .select('id, titulo, data')
+    .eq('user_id', usuario.id)
+    .order('data', { ascending: false });
+
+  query = materiaId ? query.eq('materia_id', materiaId) : query.is('materia_id', null);
+
+  const { data: anotacoes, error } = await query;
+
+  if (error || !anotacoes || anotacoes.length === 0) {
+    return editarMensagem(chatId, messageId, 'Nenhuma anotação nessa matéria.', teclaMenuAnotacoes());
+  }
+
+  const linhas = anotacoes.map((a) => ([{
+    text: `${truncar(a.titulo, 30)} (${formatarDataBr(a.data)})`,
+    callback_data: `anotacoes_apagar_sel_${a.id}`,
+  }]));
+  linhas.push([{ text: '⬅️ Voltar', callback_data: 'anotacoes_apagar_menu' }]);
+
+  return editarMensagem(chatId, messageId, '🗑️ Qual anotação apagar?', { inline_keyboard: linhas });
+}
+
+async function confirmarApagarAnotacao(supabaseAdmin, chatId, messageId, anotacaoId) {
+  const { data: anotacao } = await supabaseAdmin.from('anotacoes').select('titulo').eq('id', anotacaoId).maybeSingle();
+  const titulo = anotacao?.titulo || 'esta anotação';
+
+  return editarMensagem(
+    chatId,
+    messageId,
+    `Apagar "<b>${escapeHTML(titulo)}</b>"? Essa ação não pode ser desfeita.`,
+    teclaConfirmarCancelar(`anotacoes_apagar_ok_${anotacaoId}`, 'anotacoes_apagar_cancel'),
+  );
+}
+
+async function executarApagarAnotacao(supabaseAdmin, chatId, messageId, usuario, anotacaoId) {
+  const { data, error } = await supabaseAdmin
+    .from('anotacoes')
+    .delete()
+    .eq('id', anotacaoId)
+    .eq('user_id', usuario.id)
+    .select('titulo')
+    .maybeSingle();
+
+  if (error || !data) {
+    return editarMensagem(chatId, messageId, '❌ Não consegui apagar essa anotação.', teclaMenuAnotacoes());
+  }
+
+  return finalizarAcao(supabaseAdmin, chatId, messageId, `🗑️ Anotação "<b>${escapeHTML(data.titulo)}</b>" apagada.`);
+}
+
+// ---------------------------------------------------------
 // ROTEADOR DE CALLBACKS (cliques em botões)
 // ---------------------------------------------------------
 
@@ -671,6 +1029,46 @@ async function tratarCallback(supabaseAdmin, callbackQuery) {
   }
   if (data === 'tarefas_finalizar_cancel') return mostrarMenuTarefas(supabaseAdmin, chatId, messageId);
 
+  if (data === 'menu_anotacoes') return mostrarMenuAnotacoes(supabaseAdmin, chatId, messageId);
+
+  if (data === 'anotacoes_add_start') return iniciarAdicionarAnotacao(supabaseAdmin, chatId, messageId, usuario);
+  if (data === 'anotacoes_add_cancelar') {
+    await limparEstado(supabaseAdmin, chatId);
+    return mostrarMenuAnotacoes(supabaseAdmin, chatId, messageId);
+  }
+  if (data.startsWith('anotacoes_add_materia_')) {
+    return receberMateriaAnotacao(supabaseAdmin, chatId, messageId, usuario, data.replace('anotacoes_add_materia_', ''));
+  }
+  if (data === 'anotacoes_add_confirmar') {
+    const estado = await obterEstado(supabaseAdmin, chatId);
+    return confirmarAdicionarAnotacao(supabaseAdmin, chatId, messageId, usuario, estado);
+  }
+
+  if (data === 'anotacoes_listar_menu') return mostrarListarAnotacoesMenu(supabaseAdmin, chatId, messageId);
+  if (data === 'anotacoes_listar_por_materia') return mostrarSelecionarMateriaParaListarAnotacoes(supabaseAdmin, chatId, messageId, usuario);
+  if (data === 'anotacoes_listar_todas') return listarTodasAnotacoes(supabaseAdmin, chatId, messageId, usuario);
+  if (data.startsWith('anotacoes_listar_mat_')) {
+    return listarAnotacoesPorMateria(supabaseAdmin, chatId, messageId, usuario, data.replace('anotacoes_listar_mat_', ''));
+  }
+  if (data.startsWith('anotacoes_ver_')) {
+    return verAnotacao(supabaseAdmin, chatId, messageId, usuario, data.replace('anotacoes_ver_', ''));
+  }
+
+  if (data === 'anotacoes_apagar_menu') return mostrarApagarSelecionarMateria(supabaseAdmin, chatId, messageId, usuario);
+  if (data.startsWith('anotacoes_apagar_mat_')) {
+    return mostrarApagarSelecionarAnotacao(supabaseAdmin, chatId, messageId, usuario, data.replace('anotacoes_apagar_mat_', ''));
+  }
+  if (data.startsWith('anotacoes_apagar_direto_')) {
+    return confirmarApagarAnotacao(supabaseAdmin, chatId, messageId, data.replace('anotacoes_apagar_direto_', ''));
+  }
+  if (data.startsWith('anotacoes_apagar_sel_')) {
+    return confirmarApagarAnotacao(supabaseAdmin, chatId, messageId, data.replace('anotacoes_apagar_sel_', ''));
+  }
+  if (data.startsWith('anotacoes_apagar_ok_')) {
+    return executarApagarAnotacao(supabaseAdmin, chatId, messageId, usuario, data.replace('anotacoes_apagar_ok_', ''));
+  }
+  if (data === 'anotacoes_apagar_cancel') return mostrarMenuAnotacoes(supabaseAdmin, chatId, messageId);
+
   // Callback não reconhecido
   return mostrarMenuPrincipal(supabaseAdmin, chatId, messageId);
 }
@@ -682,7 +1080,9 @@ async function tratarCallback(supabaseAdmin, callbackQuery) {
 async function tratarMensagemTexto(supabaseAdmin, chatId, usuario, texto) {
   if (texto === '/menu') return mostrarMenuPrincipal(supabaseAdmin, chatId);
   if (texto === '/cancelar') {
+    const estadoAtual = await obterEstado(supabaseAdmin, chatId);
     await limparEstado(supabaseAdmin, chatId);
+    if (estadoAtual?.fluxo === 'anotacao_add') return mostrarMenuAnotacoes(supabaseAdmin, chatId);
     return mostrarMenuTarefas(supabaseAdmin, chatId);
   }
 
@@ -695,6 +1095,16 @@ async function tratarMensagemTexto(supabaseAdmin, chatId, usuario, texto) {
       case 'data_entrega': return receberDataTarefa(supabaseAdmin, chatId, usuario, estado, texto);
       case 'hora_entrega': return receberHoraTarefa(supabaseAdmin, chatId, usuario, estado, texto);
       default: break; // passos controlados por botão (materia/tipo/prioridade/confirmar) ignoram texto solto
+    }
+    return enviarMensagem(chatId, 'Use os botões acima para continuar, ou /cancelar para desistir.');
+  }
+
+  if (estado?.fluxo === 'anotacao_add') {
+    switch (estado.passo) {
+      case 'titulo': return receberTituloAnotacao(supabaseAdmin, chatId, usuario, estado, texto);
+      case 'conteudo': return receberConteudoAnotacao(supabaseAdmin, chatId, usuario, estado, texto);
+      case 'data': return receberDataAnotacao(supabaseAdmin, chatId, usuario, estado, texto);
+      default: break; // passos controlados por botão (materia/confirmar) ignoram texto solto
     }
     return enviarMensagem(chatId, 'Use os botões acima para continuar, ou /cancelar para desistir.');
   }
