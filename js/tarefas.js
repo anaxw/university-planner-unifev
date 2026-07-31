@@ -690,7 +690,13 @@ async function excluirAnexoExistente(anexoId) {
   const anexo = ANEXOS_ATUAIS.find((a) => a.id === anexoId);
   if (!anexo) return;
 
-  if (!confirm(`Excluir o anexo "${anexo.nome_arquivo}"?`)) return;
+  const ok = await confirmarAcao({
+    titulo: 'Excluir anexo',
+    mensagem: `Excluir o anexo "${anexo.nome_arquivo}"? Esta ação não pode ser desfeita.`,
+    tipo: 'danger',
+    textoConfirmar: 'Excluir',
+  });
+  if (!ok) return;
 
   try {
     const { error: storageError } = await supabaseClient.storage
@@ -852,7 +858,13 @@ async function salvarTarefa(e) {
 }
 
 async function excluirTarefa(id) {
-  if (!confirm('Tem certeza que deseja excluir esta tarefa?\nEsta ação não pode ser desfeita.')) return;
+  const ok = await confirmarAcao({
+    titulo: 'Excluir tarefa',
+    mensagem: 'Tem certeza que deseja excluir esta tarefa?\nEsta ação não pode ser desfeita.',
+    tipo: 'danger',
+    textoConfirmar: 'Excluir',
+  });
+  if (!ok) return;
 
   try {
     const { data: anexos } = await supabaseClient
