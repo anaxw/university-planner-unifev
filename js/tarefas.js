@@ -16,6 +16,14 @@ let ANEXOS_ATUAIS = [];
 let ARQUIVOS_PENDENTES = [];
 let TAREFA_EDITANDO = null;
 
+// =========================================================
+// UTILITÁRIOS DE DATA/HORA - HORÁRIO BRASÍLIA
+// (getAgoraBrasilia, criarDataBrasilia, formatarDataBrasilia,
+// formatarDataRelativaBrasilia, formatarHoraBrasilia e
+// formatarDataCompletaBrasilia agora vivem em js/utils.js,
+// carregado antes deste arquivo em todas as páginas)
+// =========================================================
+
 /**
  * Verifica se uma data/hora está atrasada (considerando horário de Brasília)
  */
