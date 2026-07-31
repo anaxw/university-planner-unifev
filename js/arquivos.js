@@ -186,13 +186,18 @@ function renderizarArquivos(filtrados) {
   });
 
   document.querySelectorAll('.btn-delete').forEach(btn => {
-    btn.addEventListener('click', (e) => {
+    btn.addEventListener('click', async (e) => {
       e.stopPropagation();
       const id = btn.dataset.id;
       const arquivo = ARQUIVOS_CACHE.find(a => a.id === id);
-      if (arquivo && confirm(`Tem certeza que deseja excluir "${arquivo.titulo}"?`)) {
-        excluirArquivo(arquivo);
-      }
+      if (!arquivo) return;
+      const ok = await confirmarAcao({
+        titulo: 'Excluir arquivo',
+        mensagem: `Tem certeza que deseja excluir "${arquivo.titulo}"? Esta ação não pode ser desfeita.`,
+        tipo: 'danger',
+        textoConfirmar: 'Excluir',
+      });
+      if (ok) excluirArquivo(arquivo);
     });
   });
 }
@@ -387,8 +392,14 @@ function abrirDetalhes(arquivo) {
     fecharModal('detail-modal');
   });
 
-  document.getElementById('detail-delete').addEventListener('click', () => {
-    if (confirm(`Tem certeza que deseja excluir "${arquivo.titulo}"?`)) {
+  document.getElementById('detail-delete').addEventListener('click', async () => {
+    const ok = await confirmarAcao({
+      titulo: 'Excluir arquivo',
+      mensagem: `Tem certeza que deseja excluir "${arquivo.titulo}"? Esta ação não pode ser desfeita.`,
+      tipo: 'danger',
+      textoConfirmar: 'Excluir',
+    });
+    if (ok) {
       excluirArquivo(arquivo);
       fecharModal('detail-modal');
     }
