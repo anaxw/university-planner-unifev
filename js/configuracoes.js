@@ -19,7 +19,119 @@ let USUARIO_CONFIG = null;
   document.getElementById('btn-desvincular-telegram').addEventListener('click', desvincularTelegram);
   document.getElementById('lembretes-ativo').addEventListener('change', salvarStatusLembretes);
   document.getElementById('btn-add-regra').addEventListener('click', adicionarRegra);
+
+  await carregarCurso();
+  document.getElementById('form-curso').addEventListener('submit', salvarCurso);
+  document.getElementById('btn-avancar-periodo').addEventListener('click', avancarPeriodo);
 })();
+
+// ---------------------------------------------------------
+// Curso e período (com lembrete a cada 6 meses)
+// ---------------------------------------------------------
+
+const MESES_PARA_ATUALIZAR = 6;
+
+async function carregarCurso() {
+  const { data, error } = await supabaseClient
+    .from('usuarios')
+    .select('curso, periodo, periodo_atualizado_em')
+    .eq('id', USUARIO_CONFIG.id)
+    .single();
+
+  if (error || !data) return;
+
+  document.getElementById('curso-nome').value = data.curso || '';
+  document.getElementById('curso-periodo').value = data.periodo ?? '';
+
+  atualizarInfoPeriodo(data.periodo_atualizado_em, data.periodo);
+}
+
+function proximaAtualizacao(dataBase) {
+  const base = new Date(dataBase);
+  const proxima = new Date(base);
+  proxima.setMonth(proxima.getMonth() + MESES_PARA_ATUALIZAR);
+  return proxima;
+}
+
+function formatarData(d) {
+  return d.toLocaleDateString('pt-BR');
+}
+
+function atualizarInfoPeriodo(periodoAtualizadoEm, periodo) {
+  const infoEl = document.getElementById('periodo-info');
+  const btnAvancar = document.getElementById('btn-avancar-periodo');
+
+  if (!periodoAtualizadoEm || !periodo) {
+    infoEl.textContent = '';
+    btnAvancar.classList.add('hidden');
+    return;
+  }
+
+  const proxima = proximaAtualizacao(periodoAtualizadoEm);
+  const hoje = new Date();
+  const jaPassou = hoje >= proxima;
+
+  if (jaPassou) {
+    infoEl.textContent = `Já se passaram 6 meses desde a última atualização (${formatarData(new Date(periodoAtualizadoEm))}). Você já avançou de período?`;
+    btnAvancar.classList.remove('hidden');
+  } else {
+    infoEl.textContent = `Próxima confirmação de período em ${formatarData(proxima)}.`;
+    btnAvancar.classList.add('hidden');
+  }
+}
+
+async function salvarCurso(e) {
+  e.preventDefault();
+  const curso = document.getElementById('curso-nome').value.trim();
+  const periodo = Number(document.getElementById('curso-periodo').value) || null;
+
+  const { data: atual } = await supabaseClient
+    .from('usuarios')
+    .select('periodo, periodo_atualizado_em')
+    .eq('id', USUARIO_CONFIG.id)
+    .single();
+
+  const periodoMudou = !atual || atual.periodo !== periodo;
+  const hoje = new Date().toISOString().slice(0, 10);
+
+  const payload = { curso, periodo };
+  if (periodoMudou || !atual?.periodo_atualizado_em) {
+    payload.periodo_atualizado_em = hoje;
+  }
+
+  const { error } = await supabaseClient
+    .from('usuarios')
+    .update(payload)
+    .eq('id', USUARIO_CONFIG.id);
+
+  if (error) {
+    mostrarToast('Erro ao salvar curso.', 'error');
+    return;
+  }
+
+  mostrarToast('Curso atualizado!', 'success');
+  await carregarCurso();
+}
+
+async function avancarPeriodo() {
+  const periodoAtual = Number(document.getElementById('curso-periodo').value) || 0;
+  const novoPeriodo = periodoAtual + 1;
+  const hoje = new Date().toISOString().slice(0, 10);
+
+  const { error } = await supabaseClient
+    .from('usuarios')
+    .update({ periodo: novoPeriodo, periodo_atualizado_em: hoje })
+    .eq('id', USUARIO_CONFIG.id);
+
+  if (error) {
+    mostrarToast('Erro ao avançar período.', 'error');
+    return;
+  }
+
+  document.getElementById('curso-periodo').value = novoPeriodo;
+  mostrarToast(`Período atualizado para ${novoPeriodo}º!`, 'success');
+  await carregarCurso();
+}
 
 async function carregarPreferenciasTelegram() {
   const { data, error } = await supabaseClient
