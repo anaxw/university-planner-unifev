@@ -11,135 +11,35 @@
    ESTILOS DA GRADE ESCOLAR
    ========================================================= */
 
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
-
-:root {
-  --primary: #4F7DF3;
-  --primary-hover: #3a66d6;
-  --text: #1a1a2e;
-  --text-muted: #6b7280;
-  --bg: #ffffff;
-  --gray-light: #f1f3f5;
-  --transition: 0.2s ease;
-}
-
-body {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
-  background: #f8f9fa;
-  color: var(--text);
-}
-
-.app {
-  display: flex;
-  min-height: 100vh;
-}
-
-.main {
-  flex: 1;
-  padding: 24px 32px;
-  max-width: 1400px;
-  margin: 0 auto;
-  width: 100%;
-}
-
-.topbar {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 16px 0 24px 0;
-  border-bottom: 2px solid var(--gray-light);
-  margin-bottom: 24px;
-}
-
-.flex {
-  display: flex;
-}
-.items-center {
-  align-items: center;
-}
-.gap-12 {
-  gap: 12px;
-}
-
-.btn-icon {
-  background: none;
-  border: none;
-  cursor: pointer;
-  padding: 8px;
-  border-radius: 8px;
-  color: var(--text);
-  display: none;
-}
-
-.btn-icon:hover {
-  background: var(--gray-light);
-}
-
-.topbar__title {
-  font-size: 20px;
-  font-weight: 700;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.topbar__title svg {
-  width: 24px;
-  height: 24px;
-  color: var(--primary);
-}
-
-.topbar__subtitle {
-  font-size: 13px;
-  color: var(--text-muted);
-  margin-top: 2px;
-}
-
-.card {
-  background: var(--bg);
-  border-radius: 16px;
-  padding: 24px;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
-  border: 1px solid var(--gray-light);
-}
-
 .grade-badge {
   display: inline-flex;
   align-items: center;
   gap: 4px;
   text-transform: uppercase;
   letter-spacing: 0.3px;
-  font-size: 8px;
-  font-weight: 600;
-  padding: 2px 6px;
-  border-radius: 4px;
 }
 
 .grade-badge.presencial {
-  background: rgba(79, 125, 243, 0.15);
-  color: var(--primary);
+  background: #e7f0ff;
+  color: #2d5bd4;
 }
 
 .grade-badge.ead {
-  background: rgba(245, 158, 11, 0.15);
-  color: #b45309;
+  background: #fff1e0;
+  color: #c07a10;
 }
 
 .grade-badge svg {
-  width: 10px;
-  height: 10px;
+  width: 12px;
+  height: 12px;
 }
 
 /* Grade wrap */
 .grade-wrap {
   display: flex;
-  gap: 8px;
+  gap: 10px;
   overflow-x: auto;
-  padding: 4px 2px;
+  padding: 6px 2px;
 }
 
 .grade-wrap::-webkit-scrollbar {
@@ -162,40 +62,36 @@ body {
   flex-shrink: 0;
   position: relative;
   height: 560px;
-  font-size: 10px;
+  font-size: 11px;
   color: var(--text-muted);
 }
 
 .grade-eixo span {
   position: absolute;
   transform: translateY(-50%);
-  right: 6px;
-  font-weight: 600;
-  font-size: 10px;
+  right: 4px;
+  font-weight: 500;
 }
 
 /* Colunas */
 .grade-col {
   flex: 1 1 0;
-  min-width: 100px;
+  min-width: 120px;
   position: relative;
 }
 
 .grade-col__header {
   text-align: center;
   font-weight: 700;
-  font-size: 12px;
-  margin-bottom: 4px;
+  font-size: 13px;
+  margin-bottom: 6px;
   color: var(--text);
   padding: 4px 0;
-  letter-spacing: 0.3px;
 }
 
 .grade-col__body {
   position: relative;
   height: 560px;
-  min-height: 560px;
-  max-height: 560px;
   border: 1px solid var(--gray-light);
   border-radius: 10px;
   background: var(--bg);
@@ -207,68 +103,58 @@ body {
   position: absolute;
   left: 0;
   right: 0;
-  background: repeating-linear-gradient(
-    45deg,
-    #f8f9fa,
-    #f8f9fa 6px,
-    #e9ecef 6px,
-    #e9ecef 12px
-  );
+  background: repeating-linear-gradient(45deg, #f1f2f5, #f1f2f5 6px, #e9eaee 6px, #e9eaee 12px);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 9px;
+  font-size: 10px;
   color: var(--text-muted);
-  font-weight: 600;
+  font-weight: 500;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  z-index: 1;
-  pointer-events: none;
 }
 
 /* Bloco de aula */
 .grade-bloco {
   position: absolute;
-  left: 4px;
-  right: 4px;
-  border-radius: 6px;
-  padding: 4px 6px;
+  left: 3px;
+  right: 3px;
+  border-radius: 8px;
+  padding: 6px 8px;
   color: #fff;
-  font-size: 9px;
-  line-height: 1.2;
+  font-size: 11px;
+  line-height: 1.3;
   overflow: hidden;
   cursor: pointer;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  transition: transform var(--transition), box-shadow var(--transition);
   display: flex;
   flex-direction: column;
   justify-content: center;
-  min-height: 20px;
-  z-index: 2;
 }
 
 .grade-bloco:hover {
-  transform: scale(1.03);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+  transform: scale(1.02);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
   z-index: 10;
 }
 
 .grade-bloco__nome {
   font-weight: 700;
-  font-size: 9px;
+  font-size: 11px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
 .grade-bloco__horario {
-  font-size: 8px;
+  font-size: 9px;
   opacity: 0.85;
   margin-top: 1px;
 }
 
 .grade-bloco__professor {
-  font-size: 8px;
+  font-size: 9px;
   opacity: 0.85;
   margin-top: 1px;
   white-space: nowrap;
@@ -277,29 +163,29 @@ body {
 }
 
 .grade-bloco .grade-badge {
-  margin-top: 2px;
-  font-size: 7px;
+  margin-top: 4px;
+  font-size: 9px;
   font-weight: 600;
-  padding: 1px 5px;
-  border-radius: 4px;
-  background: rgba(255, 255, 255, 0.25);
+  padding: 2px 6px;
+  border-radius: 5px;
+  background: rgba(255, 255, 255, 0.28);
   color: #fff;
   width: fit-content;
 }
 
 .grade-bloco .grade-badge svg {
-  width: 8px;
-  height: 8px;
+  width: 10px;
+  height: 10px;
 }
 
 /* =========================================================
-   VERSÃO MOBILE — dias empilhados
+   VERSÃO MOBILE — dias empilhados (um embaixo do outro)
    ========================================================= */
 
 .grade-dias-mobile {
   display: none;
   flex-direction: column;
-  gap: 12px;
+  gap: 14px;
 }
 
 .grade-dia-card {
@@ -336,6 +222,13 @@ body {
   gap: 6px;
 }
 
+.grade-dia-card__vazio {
+  padding: 14px 4px;
+  text-align: center;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
 .grade-item-mobile {
   display: flex;
   align-items: center;
@@ -343,13 +236,7 @@ body {
   padding: 8px 10px;
   border-radius: 8px;
   border-left: 4px solid var(--primary);
-  background: rgba(79, 125, 243, 0.05);
-  cursor: pointer;
-  transition: background 0.15s ease;
-}
-
-.grade-item-mobile:hover {
-  background: rgba(79, 125, 243, 0.1);
+  background: color-mix(in srgb, currentColor 6%, var(--bg));
 }
 
 .grade-item-mobile__info {
@@ -408,13 +295,7 @@ body {
   color: var(--text-muted);
   font-weight: 600;
   padding: 5px 0;
-  background: repeating-linear-gradient(
-    45deg,
-    #f8f9fa,
-    #f8f9fa 6px,
-    #e9ecef 6px,
-    #e9ecef 12px
-  );
+  background: repeating-linear-gradient(45deg, #f1f2f5, #f1f2f5 6px, #e9eaee 6px, #e9eaee 12px);
   border-radius: 6px;
 }
 
@@ -444,98 +325,6 @@ body {
   text-decoration: underline;
 }
 
-/* Cabeçalho de exportação */
-.grade-print-cabecalho {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 12px;
-  padding-bottom: 14px;
-  margin-bottom: 14px;
-  border-bottom: 2px solid var(--primary);
-}
-
-.grade-print-curso-wrap {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.grade-print-curso-wrap input {
-  border: none;
-  background: transparent;
-  color: var(--text);
-  font-weight: 700;
-  font-size: 16px;
-  padding: 2px 4px;
-  border-radius: 6px;
-  width: 260px;
-  max-width: 60vw;
-}
-
-.grade-print-curso-wrap input#input-periodo {
-  font-weight: 500;
-  font-size: 12px;
-  color: var(--text-muted);
-}
-
-.grade-print-curso-wrap input:hover,
-.grade-print-curso-wrap input:focus {
-  background: var(--gray-light);
-  outline: none;
-}
-
-.grade-print-nome {
-  text-align: right;
-  white-space: nowrap;
-}
-
-.grade-print-nome span:first-child {
-  display: block;
-  font-size: 10px;
-  font-weight: 600;
-  color: var(--text-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.4px;
-}
-
-.grade-print-nome-valor {
-  display: block;
-  font-size: 13px;
-  font-weight: 700;
-  color: var(--primary);
-}
-
-.btn-baixar-grade {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  margin-top: 16px;
-  padding: 10px 20px;
-  border: none;
-  border-radius: 8px;
-  background: var(--primary);
-  color: #fff;
-  font-weight: 600;
-  font-size: 13px;
-  cursor: pointer;
-  transition: background 0.2s ease, opacity 0.2s ease;
-}
-
-.btn-baixar-grade:hover {
-  background: var(--primary-hover);
-}
-
-.btn-baixar-grade:disabled {
-  opacity: 0.6;
-  cursor: default;
-}
-
-.btn-baixar-grade svg {
-  width: 16px;
-  height: 16px;
-}
-
 /* Loading spinner */
 .loading-spinner {
   width: 32px;
@@ -551,64 +340,28 @@ body {
   to { transform: rotate(360deg); }
 }
 
+/* Topbar */
+#saudacao-grade {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+#saudacao-grade svg {
+  width: 20px;
+  height: 20px;
+  color: var(--primary);
+}
+
 /* Responsividade */
 @media (max-width: 768px) {
-  .main {
-    padding: 16px;
-  }
-
-  .topbar {
-    padding: 12px 0 16px 0;
-    margin-bottom: 16px;
-  }
-
-  .topbar__title {
-    font-size: 17px;
-  }
-
-  .topbar__subtitle {
-    font-size: 11px;
-  }
-
-  .card {
-    padding: 16px;
-    border-radius: 12px;
-  }
-
-  .btn-icon {
-    display: block;
-  }
-
+  /* Esconde a grade em colunas e mostra os dias empilhados */
   .grade-wrap {
     display: none;
   }
 
   .grade-dias-mobile {
     display: flex;
-  }
-
-  .grade-print-cabecalho {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 8px;
-  }
-
-  .grade-print-curso-wrap input {
-    width: 100%;
-    max-width: 100%;
-  }
-
-  .grade-print-nome {
-    text-align: left;
-  }
-
-  .grade-print-nome-valor {
-    font-size: 14px;
-  }
-
-  .btn-baixar-grade {
-    width: 100%;
-    justify-content: center;
   }
 }
 
@@ -623,20 +376,6 @@ body {
 
   .grade-item-mobile__horario {
     font-size: 10px;
-  }
-
-  .grade-item-mobile__professor {
-    font-size: 10px;
-  }
-
-  .grade-dia-card__body {
-    padding: 6px 8px;
-    gap: 4px;
-  }
-
-  .grade-item-mobile {
-    padding: 6px 8px;
-    gap: 6px;
   }
 }
 </style>
@@ -671,35 +410,13 @@ body {
       </div>
 
       <div class="card">
-        <div id="grade-print-area">
-          <div class="grade-print-cabecalho">
-            <div class="grade-print-curso-wrap">
-              <input id="input-curso" type="text" placeholder="Nome do curso">
-              <input id="input-periodo" type="text" placeholder="Período (ex: 5º período)">
-            </div>
-            <div class="grade-print-nome">
-              <span>Aluno(a)</span>
-              <span class="grade-print-nome-valor" id="grade-print-nome-valor">—</span>
-            </div>
-          </div>
-          <div id="grade-horaria">
-            <div class="loading-spinner"></div>
-          </div>
+        <div id="grade-horaria">
+          <div class="loading-spinner"></div>
         </div>
-
-        <button class="btn-baixar-grade" id="btn-baixar-grade">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-            <polyline points="7 10 12 15 17 10"/>
-            <line x1="12" y1="15" x2="12" y2="3"/>
-          </svg>
-          Baixar imagem
-        </button>
       </div>
     </main>
   </div>
 
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="js/supabaseClient.js"></script>
   <script src="js/utils.js"></script>
