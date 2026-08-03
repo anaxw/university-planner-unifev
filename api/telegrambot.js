@@ -708,25 +708,7 @@ async function receberTituloAnotacao(supabaseAdmin, chatId, usuario, estado, tex
 
 async function receberConteudoAnotacao(supabaseAdmin, chatId, usuario, estado, texto) {
   const conteudo = texto.trim() === '-' ? null : texto.trim();
-  const dados = { ...estado.dados, conteudo };
-  await salvarEstado(supabaseAdmin, chatId, usuario.id, 'anotacao_add', 'data', dados);
-  return enviarMensagem(
-    chatId,
-    '📅 Qual a <b>data</b> dessa anotação?\n\nDigite no formato <b>DD/MM/AAAA</b>, ou envie <b>-</b> para usar hoje.',
-  );
-}
-
-async function receberDataAnotacao(supabaseAdmin, chatId, usuario, estado, texto) {
-  const bruto = texto.trim();
-  let data = hojeIso();
-  if (bruto !== '-') {
-    const iso = parseDataBr(bruto);
-    if (iso === undefined) {
-      return enviarMensagem(chatId, '⚠️ Data inválida. Use o formato <b>DD/MM/AAAA</b> (ex: 25/12/2026), ou envie <b>-</b> para usar hoje.');
-    }
-    data = iso;
-  }
-  const dados = { ...estado.dados, data };
+  const dados = { ...estado.dados, conteudo, data: hojeIso() };
   return mostrarResumoAnotacao(supabaseAdmin, chatId, usuario, dados);
 }
 
@@ -1103,7 +1085,6 @@ async function tratarMensagemTexto(supabaseAdmin, chatId, usuario, texto) {
     switch (estado.passo) {
       case 'titulo': return receberTituloAnotacao(supabaseAdmin, chatId, usuario, estado, texto);
       case 'conteudo': return receberConteudoAnotacao(supabaseAdmin, chatId, usuario, estado, texto);
-      case 'data': return receberDataAnotacao(supabaseAdmin, chatId, usuario, estado, texto);
       default: break; // passos controlados por botão (materia/confirmar) ignoram texto solto
     }
     return enviarMensagem(chatId, 'Use os botões acima para continuar, ou /cancelar para desistir.');
