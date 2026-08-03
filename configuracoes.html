@@ -36,6 +36,37 @@
   }
   .settings-panel { display: none; }
   .settings-panel.active { display: block; }
+
+  /* Responsivo — celular */
+  @media (max-width: 640px) {
+    .settings-tabs {
+      gap: 2px;
+      margin-bottom: 12px;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+    }
+    .settings-tabs::-webkit-scrollbar { display: none; }
+    .settings-tab {
+      padding: 8px 12px;
+      font-size: 13px;
+      flex-shrink: 0;
+    }
+    #painel-conta .grid-2 {
+      grid-template-columns: 1fr !important;
+    }
+    #painel-telegram .field-row {
+      grid-template-columns: 1fr 1fr !important;
+      row-gap: 12px;
+    }
+    #painel-telegram .field-row > div:last-child {
+      grid-column: 1 / -1;
+    }
+    #painel-telegram .field-row #btn-add-regra {
+      width: 100%;
+    }
+    .topbar__title { font-size: 18px; }
+    .card { padding: 16px; }
+  }
 </style>
 </head>
 <body>
