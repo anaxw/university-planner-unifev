@@ -9,6 +9,33 @@
 <style>
   .btn-delete { color: #EF4444; }
   .btn-delete:hover { background: #FEE2E2; }
+
+  .settings-tabs {
+    display: flex;
+    gap: 4px;
+    border-bottom: 1px solid #E5E7EB;
+    margin-bottom: 16px;
+    overflow-x: auto;
+  }
+  .settings-tab {
+    appearance: none;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 10px 16px;
+    font-size: 14px;
+    font-weight: 600;
+    color: #6B7280;
+    border-bottom: 2px solid transparent;
+    white-space: nowrap;
+  }
+  .settings-tab:hover { color: #111827; }
+  .settings-tab.active {
+    color: #4F46E5;
+    border-bottom-color: #4F46E5;
+  }
+  .settings-panel { display: none; }
+  .settings-panel.active { display: block; }
 </style>
 </head>
 <body>
@@ -27,22 +54,50 @@
         </div>
       </div>
 
-      <div class="grid grid-2">
-        <div class="card">
-          <div class="card-header"><h3>Perfil</h3></div>
-          <form id="form-perfil">
-            <div class="field">
-              <label for="perfil-nome">Nome</label>
-              <input class="input" id="perfil-nome" placeholder="Seu nome">
-            </div>
-            <div class="field">
-              <label for="perfil-email">E-mail</label>
-              <input class="input" id="perfil-email" disabled>
-            </div>
-            <button type="submit" class="btn btn-primary">Salvar alterações</button>
-          </form>
-        </div>
+      <div class="settings-tabs" role="tablist">
+        <button type="button" class="settings-tab active" data-tab="conta">Perfil e senha</button>
+        <button type="button" class="settings-tab" data-tab="curso">Meu curso</button>
+        <button type="button" class="settings-tab" data-tab="telegram">
+          Telegram
+          <span class="badge badge-gray" id="telegram-status" style="margin-left:6px;">...</span>
+        </button>
+      </div>
 
+      <div class="settings-panel active" id="painel-conta">
+        <div class="grid grid-2">
+          <div class="card">
+            <div class="card-header"><h3>Perfil</h3></div>
+            <form id="form-perfil">
+              <div class="field">
+                <label for="perfil-nome">Nome</label>
+                <input class="input" id="perfil-nome" placeholder="Seu nome">
+              </div>
+              <div class="field">
+                <label for="perfil-email">E-mail</label>
+                <input class="input" id="perfil-email" disabled>
+              </div>
+              <button type="submit" class="btn btn-primary">Salvar alterações</button>
+            </form>
+          </div>
+
+          <div class="card">
+            <div class="card-header"><h3>Alterar senha</h3></div>
+            <form id="form-senha">
+              <div class="field">
+                <label for="nova-senha">Nova senha</label>
+                <input class="input" type="password" id="nova-senha" minlength="6" required>
+              </div>
+              <div class="field">
+                <label for="confirmar-senha">Confirmar nova senha</label>
+                <input class="input" type="password" id="confirmar-senha" minlength="6" required>
+              </div>
+              <button type="submit" class="btn btn-primary">Atualizar senha</button>
+            </form>
+          </div>
+        </div>
+      </div>
+
+      <div class="settings-panel" id="painel-curso">
         <div class="card">
           <div class="card-header"><h3>Meu curso</h3></div>
           <form id="form-curso">
@@ -61,92 +116,78 @@
             </div>
           </form>
         </div>
-
-        <div class="card">
-          <div class="card-header"><h3>Alterar senha</h3></div>
-          <form id="form-senha">
-            <div class="field">
-              <label for="nova-senha">Nova senha</label>
-              <input class="input" type="password" id="nova-senha" minlength="6" required>
-            </div>
-            <div class="field">
-              <label for="confirmar-senha">Confirmar nova senha</label>
-              <input class="input" type="password" id="confirmar-senha" minlength="6" required>
-            </div>
-            <button type="submit" class="btn btn-primary">Atualizar senha</button>
-          </form>
-        </div>
       </div>
 
-      <div class="card mt-16">
-        <div class="card-header">
-          <h3>Lembretes via Telegram</h3>
-          <span class="badge badge-gray" id="telegram-status">Verificando...</span>
-        </div>
-
-        <div id="telegram-nao-vinculado">
-          <p class="text-muted text-sm mb-8">
-            Vincule sua conta ao bot do Telegram para receber avisos de tarefas e provas antes do vencimento.
-          </p>
-          <div id="telegram-codigo-area" class="hidden mt-16">
-            <p class="text-sm">
-              1. Abra o Telegram e procure pelo bot informado pelo sistema.<br>
-              2. Envie a mensagem abaixo para o bot:
-            </p>
-            <div class="field mt-8">
-              <input class="input" id="telegram-codigo" readonly style="font-weight:700; text-align:center; letter-spacing:2px;">
-            </div>
-            <p class="text-muted text-sm">O código expira ao ser usado ou ao gerar um novo.</p>
-          </div>
-          <button type="button" class="btn btn-primary mt-8" id="btn-gerar-codigo">Gerar código de vinculação</button>
-        </div>
-
-        <div id="telegram-vinculado" class="hidden">
-          <p class="text-sm mb-16 flex items-center gap-8">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#22C55E" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
-              <polyline points="22 4 12 14.01 9 11.01"/>
-            </svg>
-            Sua conta está vinculada ao Telegram.
-          </p>
-
-          <div class="field">
-            <label for="lembretes-ativo">Lembretes</label>
-            <select class="select" id="lembretes-ativo">
-              <option value="true">Ativados</option>
-              <option value="false">Desativados</option>
-            </select>
+      <div class="settings-panel" id="painel-telegram">
+        <div class="card">
+          <div class="card-header">
+            <h3>Lembretes via Telegram</h3>
           </div>
 
-          <div class="field">
-            <label>Quando avisar?</label>
+          <div id="telegram-nao-vinculado">
             <p class="text-muted text-sm mb-8">
-              Adicione quantos avisos quiser para a mesma tarefa — por exemplo, 1 dia antes,
-              depois 3 horas antes, depois 30 minutos antes.
+              Vincule sua conta ao bot do Telegram para receber avisos de tarefas e provas antes do vencimento.
             </p>
-            <ul id="lista-regras" class="mb-16" style="list-style:none; padding:0;"></ul>
-
-            <div class="field-row" style="grid-template-columns: 1fr 1fr 1fr auto; align-items:end;">
-              <div>
-                <label for="regra-dias" class="text-muted text-sm">Dias</label>
-                <input class="input" type="number" min="0" id="regra-dias" value="0">
+            <div id="telegram-codigo-area" class="hidden mt-16">
+              <p class="text-sm">
+                1. Abra o Telegram e procure pelo bot informado pelo sistema.<br>
+                2. Envie a mensagem abaixo para o bot:
+              </p>
+              <div class="field mt-8">
+                <input class="input" id="telegram-codigo" readonly style="font-weight:700; text-align:center; letter-spacing:2px;">
               </div>
-              <div>
-                <label for="regra-horas" class="text-muted text-sm">Horas</label>
-                <input class="input" type="number" min="0" max="23" id="regra-horas" value="0">
-              </div>
-              <div>
-                <label for="regra-minutos" class="text-muted text-sm">Minutos</label>
-                <input class="input" type="number" min="0" max="59" id="regra-minutos" value="0">
-              </div>
-              <div>
-                <button type="button" class="btn btn-primary" id="btn-add-regra">+ Adicionar</button>
-              </div>
+              <p class="text-muted text-sm">O código expira ao ser usado ou ao gerar um novo.</p>
             </div>
+            <button type="button" class="btn btn-primary mt-8" id="btn-gerar-codigo">Gerar código de vinculação</button>
           </div>
 
-          <div class="flex gap-12 mt-16">
-            <button type="button" class="btn btn-danger" id="btn-desvincular-telegram">Desvincular Telegram</button>
+          <div id="telegram-vinculado" class="hidden">
+            <p class="text-sm mb-16 flex items-center gap-8">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#22C55E" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+                <polyline points="22 4 12 14.01 9 11.01"/>
+              </svg>
+              Sua conta está vinculada ao Telegram.
+            </p>
+
+            <div class="field">
+              <label for="lembretes-ativo">Lembretes</label>
+              <select class="select" id="lembretes-ativo">
+                <option value="true">Ativados</option>
+                <option value="false">Desativados</option>
+              </select>
+            </div>
+
+            <div class="field">
+              <label>Quando avisar?</label>
+              <p class="text-muted text-sm mb-8">
+                Adicione quantos avisos quiser para a mesma tarefa — por exemplo, 1 dia antes,
+                depois 3 horas antes, depois 30 minutos antes.
+              </p>
+              <ul id="lista-regras" class="mb-16" style="list-style:none; padding:0;"></ul>
+
+              <div class="field-row" style="grid-template-columns: 1fr 1fr 1fr auto; align-items:end;">
+                <div>
+                  <label for="regra-dias" class="text-muted text-sm">Dias</label>
+                  <input class="input" type="number" min="0" id="regra-dias" value="0">
+                </div>
+                <div>
+                  <label for="regra-horas" class="text-muted text-sm">Horas</label>
+                  <input class="input" type="number" min="0" max="23" id="regra-horas" value="0">
+                </div>
+                <div>
+                  <label for="regra-minutos" class="text-muted text-sm">Minutos</label>
+                  <input class="input" type="number" min="0" max="59" id="regra-minutos" value="0">
+                </div>
+                <div>
+                  <button type="button" class="btn btn-primary" id="btn-add-regra">+ Adicionar</button>
+                </div>
+              </div>
+            </div>
+
+            <div class="flex gap-12 mt-16">
+              <button type="button" class="btn btn-danger" id="btn-desvincular-telegram">Desvincular Telegram</button>
+            </div>
           </div>
         </div>
       </div>
