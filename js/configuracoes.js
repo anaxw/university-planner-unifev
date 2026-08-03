@@ -23,7 +23,33 @@ let USUARIO_CONFIG = null;
   await carregarCurso();
   document.getElementById('form-curso').addEventListener('submit', salvarCurso);
   document.getElementById('btn-avancar-periodo').addEventListener('click', avancarPeriodo);
+
+  iniciarAbas();
 })();
+
+// ---------------------------------------------------------
+// Abas (Perfil e senha / Meu curso / Telegram)
+// ---------------------------------------------------------
+
+function iniciarAbas() {
+  const tabs = document.querySelectorAll('.settings-tab');
+  const painéis = {
+    conta: document.getElementById('painel-conta'),
+    curso: document.getElementById('painel-curso'),
+    telegram: document.getElementById('painel-telegram'),
+  };
+
+  function ativarAba(nome) {
+    tabs.forEach((tab) => tab.classList.toggle('active', tab.dataset.tab === nome));
+    Object.entries(painéis).forEach(([chave, el]) => el.classList.toggle('active', chave === nome));
+    if (history.replaceState) history.replaceState(null, '', `#${nome}`);
+  }
+
+  tabs.forEach((tab) => tab.addEventListener('click', () => ativarAba(tab.dataset.tab)));
+
+  const inicial = window.location.hash.replace('#', '');
+  ativarAba(painéis[inicial] ? inicial : 'conta');
+}
 
 // ---------------------------------------------------------
 // Curso e período (com lembrete a cada 6 meses)
