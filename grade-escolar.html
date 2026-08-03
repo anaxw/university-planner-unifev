@@ -325,6 +325,93 @@
   text-decoration: underline;
 }
 
+/* Cabeçalho de exportação (curso / período / nome) */
+.grade-print-cabecalho {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  padding-bottom: 14px;
+  margin-bottom: 14px;
+  border-bottom: 2px solid var(--primary);
+}
+
+.grade-print-curso-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.grade-print-curso-wrap input {
+  border: none;
+  background: transparent;
+  color: var(--text);
+  font-weight: 700;
+  font-size: 16px;
+  padding: 2px 4px;
+  border-radius: 6px;
+  width: 260px;
+  max-width: 60vw;
+}
+
+.grade-print-curso-wrap input#input-periodo {
+  font-weight: 500;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.grade-print-curso-wrap input:hover,
+.grade-print-curso-wrap input:focus {
+  background: var(--gray-light);
+  outline: none;
+}
+
+.grade-print-nome {
+  text-align: right;
+  white-space: nowrap;
+}
+
+.grade-print-nome .grade-print-nome-rotulo {
+  display: block;
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+
+.grade-print-nome-valor {
+  display: block;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--primary);
+}
+
+.btn-baixar-grade {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 14px;
+  padding: 9px 16px;
+  border: none;
+  border-radius: 8px;
+  background: var(--primary);
+  color: #fff;
+  font-weight: 600;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.btn-baixar-grade svg {
+  width: 15px;
+  height: 15px;
+}
+
+.btn-baixar-grade:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
 /* Loading spinner */
 .loading-spinner {
   width: 32px;
@@ -410,13 +497,35 @@
       </div>
 
       <div class="card">
-        <div id="grade-horaria">
-          <div class="loading-spinner"></div>
+        <div id="grade-print-area">
+          <div class="grade-print-cabecalho">
+            <div class="grade-print-curso-wrap">
+              <input id="input-curso" type="text" placeholder="Nome do curso">
+              <input id="input-periodo" type="text" placeholder="Período (ex: 5º período)">
+            </div>
+            <div class="grade-print-nome">
+              <span>Aluno(a)</span>
+              <span id="grade-print-nome-valor">—</span>
+            </div>
+          </div>
+          <div id="grade-horaria">
+            <div class="loading-spinner"></div>
+          </div>
         </div>
+
+        <button class="btn-baixar-grade" id="btn-baixar-grade">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+            <polyline points="7 10 12 15 17 10"/>
+            <line x1="12" y1="15" x2="12" y2="3"/>
+          </svg>
+          Baixar imagem
+        </button>
       </div>
     </main>
   </div>
 
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="js/supabaseClient.js"></script>
   <script src="js/utils.js"></script>
