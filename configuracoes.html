@@ -44,6 +44,25 @@
         </div>
 
         <div class="card">
+          <div class="card-header"><h3>Meu curso</h3></div>
+          <form id="form-curso">
+            <div class="field">
+              <label for="curso-nome">Curso</label>
+              <input class="input" id="curso-nome" placeholder="Ex: Engenharia de Software">
+            </div>
+            <div class="field">
+              <label for="curso-periodo">Período atual</label>
+              <input class="input" type="number" min="1" max="30" id="curso-periodo" placeholder="Ex: 5">
+            </div>
+            <p class="text-muted text-sm mb-8" id="periodo-info"></p>
+            <div class="flex gap-12" style="flex-wrap: wrap;">
+              <button type="submit" class="btn btn-primary">Salvar curso</button>
+              <button type="button" class="btn btn-primary hidden" id="btn-avancar-periodo">Avancei de período</button>
+            </div>
+          </form>
+        </div>
+
+        <div class="card">
           <div class="card-header"><h3>Alterar senha</h3></div>
           <form id="form-senha">
             <div class="field">
