@@ -43,8 +43,46 @@ function minutosDoDia(hhmm) {
 (async () => {
   USUARIO_ATUAL = await iniciarPagina('grade');
   if (!USUARIO_ATUAL) return;
+  
+  await carregarDadosUsuario();
   await carregarGrade();
 })();
+
+// =========================================================
+// CARREGAMENTO DOS DADOS DO USUÁRIO
+// =========================================================
+
+async function carregarDadosUsuario() {
+  try {
+    const { data, error } = await supabaseClient
+      .from('usuarios')
+      .select('curso, periodo, nome')
+      .eq('id', USUARIO_ATUAL.id)
+      .single();
+
+    if (error) throw error;
+
+    if (data) {
+      const inputCurso = document.getElementById('input-curso');
+      const inputPeriodo = document.getElementById('input-periodo');
+      const nomeAluno = document.getElementById('grade-print-nome-valor');
+
+      if (inputCurso && data.curso) {
+        inputCurso.value = data.curso;
+      }
+
+      if (inputPeriodo && data.periodo) {
+        inputPeriodo.value = `${data.periodo}º período`;
+      }
+
+      if (nomeAluno && data.nome) {
+        nomeAluno.textContent = data.nome;
+      }
+    }
+  } catch (error) {
+    console.error('Erro ao carregar dados do usuário:', error);
+  }
+}
 
 // =========================================================
 // CARREGAMENTO DE DADOS
@@ -302,3 +340,57 @@ function renderGradeMobile() {
     `;
   }).join('');
 }
+
+// =========================================================
+// DOWNLOAD DA GRADE COMO IMAGEM
+// =========================================================
+
+document.addEventListener('DOMContentLoaded', () => {
+  const btnBaixar = document.getElementById('btn-baixar-grade');
+  if (!btnBaixar) return;
+
+  btnBaixar.addEventListener('click', async () => {
+    try {
+      btnBaixar.disabled = true;
+      btnBaixar.innerHTML = 'Gerando imagem...';
+
+      const element = document.getElementById('grade-print-area');
+      if (!element) {
+        throw new Error('Elemento não encontrado');
+      }
+
+      // Aguarda um pequeno delay para garantir que o DOM esteja pronto
+      await new Promise(resolve => setTimeout(resolve, 100));
+
+      const canvas = await html2canvas(element, {
+        scale: 2,
+        useCORS: true,
+        allowTaint: true,
+        backgroundColor: '#ffffff',
+        logging: false,
+        width: element.scrollWidth,
+        height: element.scrollHeight,
+      });
+
+      // Cria o link para download
+      const link = document.createElement('a');
+      link.download = `grade-escolar-${new Date().toISOString().split('T')[0]}.png`;
+      link.href = canvas.toDataURL('image/png');
+      link.click();
+
+    } catch (error) {
+      console.error('Erro ao gerar imagem:', error);
+      mostrarToast('Erro ao gerar a imagem. Tente novamente.', 'error');
+    } finally {
+      btnBaixar.disabled = false;
+      btnBaixar.innerHTML = `
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+          <polyline points="7 10 12 15 17 10"/>
+          <line x1="12" y1="15" x2="12" y2="3"/>
+        </svg>
+        Baixar imagem
+      `;
+    }
+  });
+});
