@@ -58,6 +58,96 @@ function escapeHTML(texto) {
 }
 
 // ---------------------------------------------------------
+// ARQUIVOS: download do Telegram e helpers de mídia
+// ---------------------------------------------------------
+
+const BUCKET_ARQUIVOS = 'arquivos';
+const TAMANHO_MAXIMO_ARQUIVO = 20 * 1024 * 1024; // 20MB — limite da API padrão do Telegram para getFile
+
+async function obterArquivoTelegram(fileId) {
+  try {
+    const resposta = await fetch(`https://api.telegram.org/bot${TOKEN()}/getFile?file_id=${fileId}`);
+    const dados = await resposta.json();
+    if (!dados.ok) {
+      console.error('Erro ao obter file_path do Telegram:', dados);
+      return null;
+    }
+    return dados.result; // { file_id, file_path, file_size, ... }
+  } catch (err) {
+    console.error('Erro ao chamar getFile do Telegram:', err);
+    return null;
+  }
+}
+
+async function baixarBytesTelegram(filePath) {
+  try {
+    const resposta = await fetch(`https://api.telegram.org/file/bot${TOKEN()}/${filePath}`);
+    if (!resposta.ok) {
+      console.error('Erro ao baixar arquivo do Telegram:', resposta.status);
+      return null;
+    }
+    const arrayBuffer = await resposta.arrayBuffer();
+    return Buffer.from(arrayBuffer);
+  } catch (err) {
+    console.error('Erro ao baixar bytes do Telegram:', err);
+    return null;
+  }
+}
+
+function sanitizarNomeArquivo(nome) {
+  return String(nome || 'arquivo')
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, '') // remove acentos
+    .replace(/[^a-zA-Z0-9._-]/g, '_');
+}
+
+// Extrai o file_id/nome/tipo/tamanho de uma mensagem do Telegram, seja ela
+// um documento, foto, vídeo, áudio ou nota de voz.
+function extrairArquivoDaMensagem(mensagem) {
+  if (mensagem.document) {
+    return {
+      file_id: mensagem.document.file_id,
+      nome_arquivo: mensagem.document.file_name || `documento_${Date.now()}`,
+      tipo_arquivo: mensagem.document.mime_type || null,
+      tamanho_bytes: mensagem.document.file_size || null,
+    };
+  }
+  if (mensagem.photo && mensagem.photo.length > 0) {
+    const maior = mensagem.photo[mensagem.photo.length - 1]; // Telegram manda várias resoluções; a última é a maior
+    return {
+      file_id: maior.file_id,
+      nome_arquivo: `foto_${Date.now()}.jpg`,
+      tipo_arquivo: 'image/jpeg',
+      tamanho_bytes: maior.file_size || null,
+    };
+  }
+  if (mensagem.video) {
+    return {
+      file_id: mensagem.video.file_id,
+      nome_arquivo: mensagem.video.file_name || `video_${Date.now()}.mp4`,
+      tipo_arquivo: mensagem.video.mime_type || 'video/mp4',
+      tamanho_bytes: mensagem.video.file_size || null,
+    };
+  }
+  if (mensagem.audio) {
+    return {
+      file_id: mensagem.audio.file_id,
+      nome_arquivo: mensagem.audio.file_name || `audio_${Date.now()}.mp3`,
+      tipo_arquivo: mensagem.audio.mime_type || 'audio/mpeg',
+      tamanho_bytes: mensagem.audio.file_size || null,
+    };
+  }
+  if (mensagem.voice) {
+    return {
+      file_id: mensagem.voice.file_id,
+      nome_arquivo: `voz_${Date.now()}.ogg`,
+      tipo_arquivo: mensagem.voice.mime_type || 'audio/ogg',
+      tamanho_bytes: mensagem.voice.file_size || null,
+    };
+  }
+  return null;
+}
+
+// ---------------------------------------------------------
 // ESTADO DA CONVERSA (formulários em andamento)
 // ---------------------------------------------------------
 
@@ -126,7 +216,7 @@ function teclaMenuPrincipal() {
     inline_keyboard: [
       [{ text: '📋 Tarefas', callback_data: 'menu_tarefas' }],
       [{ text: '📝 Anotações', callback_data: 'menu_anotacoes' }],
-      [{ text: '📁 Arquivos', callback_data: 'menu_em_breve' }],
+      [{ text: '📁 Arquivos', callback_data: 'menu_arquivos' }],
     ],
   };
 }
