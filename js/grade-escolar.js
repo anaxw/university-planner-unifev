@@ -36,40 +36,6 @@ function minutosDoDia(hhmm) {
   return h * 60 + m;
 }
 
-function escapeHTML(text) {
-  if (!text) return '';
-  const div = document.createElement('div');
-  div.textContent = text;
-  return div.innerHTML;
-}
-
-function mostrarToast(mensagem, tipo = 'info') {
-  // Função simples de toast - adapte conforme seu sistema
-  const toast = document.createElement('div');
-  toast.style.cssText = `
-    position: fixed;
-    bottom: 20px;
-    right: 20px;
-    padding: 12px 20px;
-    border-radius: 8px;
-    background: ${tipo === 'error' ? '#ef4444' : '#4F7DF3'};
-    color: white;
-    font-weight: 500;
-    font-size: 14px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-    z-index: 9999;
-    max-width: 400px;
-    animation: slideIn 0.3s ease;
-  `;
-  toast.textContent = mensagem;
-  document.body.appendChild(toast);
-  setTimeout(() => {
-    toast.style.opacity = '0';
-    toast.style.transition = 'opacity 0.3s ease';
-    setTimeout(() => toast.remove(), 300);
-  }, 3000);
-}
-
 // =========================================================
 // INICIALIZAÇÃO
 // =========================================================
@@ -77,46 +43,8 @@ function mostrarToast(mensagem, tipo = 'info') {
 (async () => {
   USUARIO_ATUAL = await iniciarPagina('grade');
   if (!USUARIO_ATUAL) return;
-  
-  await carregarDadosUsuario();
   await carregarGrade();
 })();
-
-// =========================================================
-// CARREGAMENTO DOS DADOS DO USUÁRIO
-// =========================================================
-
-async function carregarDadosUsuario() {
-  try {
-    const { data, error } = await supabaseClient
-      .from('usuarios')
-      .select('curso, periodo, nome')
-      .eq('id', USUARIO_ATUAL.id)
-      .single();
-
-    if (error) throw error;
-
-    if (data) {
-      const inputCurso = document.getElementById('input-curso');
-      const inputPeriodo = document.getElementById('input-periodo');
-      const nomeAluno = document.getElementById('grade-print-nome-valor');
-
-      if (inputCurso && data.curso) {
-        inputCurso.value = data.curso;
-      }
-
-      if (inputPeriodo && data.periodo) {
-        inputPeriodo.value = `${data.periodo}º período`;
-      }
-
-      if (nomeAluno && data.nome) {
-        nomeAluno.textContent = data.nome;
-      }
-    }
-  } catch (error) {
-    console.error('Erro ao carregar dados do usuário:', error);
-  }
-}
 
 // =========================================================
 // CARREGAMENTO DE DADOS
@@ -232,68 +160,29 @@ function renderGradeHoraria() {
 
   const colunasHtml = DIAS_SEMANA_HORARIO.map(dia => {
     const blocos = [];
-    const horariosDoDia = [];
-    
     MATERIAS_CACHE.forEach(m => {
       (HORARIOS_POR_MATERIA[m.id] || []).forEach(h => {
-        if (h.dia_semana === dia.valor) {
-          horariosDoDia.push({
-            materia: m,
-            horario: h
-          });
-        }
+        if (h.dia_semana !== dia.valor) return;
+        const inicio = h.hora_inicio.slice(0, 5);
+        const fim = h.hora_fim.slice(0, 5);
+        const topo = ((minutosDoDia(inicio) - minutosDoDia(AULA_INICIO)) / totalMin) * 100;
+        const altura = ((minutosDoDia(fim) - minutosDoDia(inicio)) / totalMin) * 100;
+        const tipoInfo = TIPOS_MATERIA[m.tipo] || TIPOS_MATERIA.presencial;
+        const professorHtml = m.professor
+          ? `<div class="grade-bloco__professor">${escapeHTML(m.professor)}</div>`
+          : '';
+        blocos.push(`
+          <div class="grade-bloco" data-id="${m.id}" style="top:${topo}%; height:${altura}%; background:${m.cor || '#4F7DF3'}" title="${escapeHTML(m.nome)}${m.professor ? ' · ' + escapeHTML(m.professor) : ''} · ${inicio}-${fim}">
+            <div class="grade-bloco__nome">${escapeHTML(m.nome)}</div>
+            <div class="grade-bloco__horario">${inicio}-${fim}</div>
+            ${professorHtml}
+            <span class="grade-badge ${m.tipo || 'presencial'}">
+              ${iconeTipo(m.tipo)}
+              ${tipoInfo.label}
+            </span>
+          </div>
+        `);
       });
-    });
-
-    // Ordena por horário de início
-    horariosDoDia.sort((a, b) => 
-      minutosDoDia(a.horario.hora_inicio) - minutosDoDia(b.horario.hora_inicio)
-    );
-
-    horariosDoDia.forEach(({ materia, horario }) => {
-      const inicio = horario.hora_inicio.slice(0, 5);
-      const fim = horario.hora_fim.slice(0, 5);
-      
-      const inicioMin = minutosDoDia(inicio);
-      const fimMin = minutosDoDia(fim);
-      const intervaloInicioMin = minutosDoDia(INTERVALO_INICIO);
-      const intervaloFimMin = minutosDoDia(INTERVALO_FIM);
-      
-      // Pula horários que estão dentro do intervalo
-      if (inicioMin >= intervaloInicioMin && fimMin <= intervaloFimMin) {
-        return;
-      }
-      
-      let topoDisplay = inicioMin;
-      let alturaDisplay = fimMin - inicioMin;
-      
-      // Se o horário cruza o intervalo, ajusta para mostrar apenas a parte fora
-      if (inicioMin < intervaloInicioMin && fimMin > intervaloInicioMin && fimMin <= intervaloFimMin) {
-        alturaDisplay = intervaloInicioMin - inicioMin;
-      } else if (inicioMin >= intervaloInicioMin && inicioMin < intervaloFimMin && fimMin > intervaloFimMin) {
-        topoDisplay = intervaloFimMin;
-        alturaDisplay = fimMin - intervaloFimMin;
-      }
-      
-      const topo = ((topoDisplay - minutosDoDia(AULA_INICIO)) / totalMin) * 100;
-      const altura = (alturaDisplay / totalMin) * 100;
-      
-      const tipoInfo = TIPOS_MATERIA[materia.tipo] || TIPOS_MATERIA.presencial;
-      const professorHtml = materia.professor
-        ? `<div class="grade-bloco__professor">${escapeHTML(materia.professor)}</div>`
-        : '';
-        
-      blocos.push(`
-        <div class="grade-bloco" data-id="${materia.id}" style="top:${topo}%; height:${altura}%; background:${materia.cor || '#4F7DF3'}" title="${escapeHTML(materia.nome)}${materia.professor ? ' · ' + escapeHTML(materia.professor) : ''} · ${inicio}-${fim}">
-          <div class="grade-bloco__nome">${escapeHTML(materia.nome)}</div>
-          <div class="grade-bloco__horario">${inicio}-${fim}</div>
-          ${professorHtml}
-          <span class="grade-badge ${materia.tipo || 'presencial'}">
-            ${iconeTipo(materia.tipo)}
-            ${tipoInfo.label}
-          </span>
-        </div>
-      `);
     });
 
     return `
@@ -344,20 +233,11 @@ function renderGradeMobile() {
   };
 
   return DIAS_SEMANA_HORARIO.map(dia => {
+    // Monta a lista de aulas do dia
     const aulas = [];
     MATERIAS_CACHE.forEach(m => {
       (HORARIOS_POR_MATERIA[m.id] || []).forEach(h => {
         if (h.dia_semana !== dia.valor) return;
-        
-        const inicioMin = minutosDoDia(h.hora_inicio);
-        const fimMin = minutosDoDia(h.hora_fim);
-        const intervaloInicioMin = minutosDoDia(INTERVALO_INICIO);
-        const intervaloFimMin = minutosDoDia(INTERVALO_FIM);
-        
-        if (inicioMin >= intervaloInicioMin && fimMin <= intervaloFimMin) {
-          return;
-        }
-        
         aulas.push({
           tipoEvento: 'aula',
           inicio: h.hora_inicio.slice(0, 5),
@@ -378,8 +258,7 @@ function renderGradeMobile() {
       `;
     }
 
-    aulas.sort((a, b) => minutosDoDia(a.inicio) - minutosDoDia(b.inicio));
-
+    // Intercala o intervalo na posição correta, ordenando tudo por horário de início
     const eventos = [
       ...aulas,
       { tipoEvento: 'intervalo', inicio: INTERVALO_INICIO, fim: INTERVALO_FIM },
@@ -423,59 +302,3 @@ function renderGradeMobile() {
     `;
   }).join('');
 }
-
-// =========================================================
-// DOWNLOAD DA GRADE COMO IMAGEM
-// =========================================================
-
-document.addEventListener('DOMContentLoaded', () => {
-  const btnBaixar = document.getElementById('btn-baixar-grade');
-  if (!btnBaixar) return;
-
-  btnBaixar.addEventListener('click', async () => {
-    try {
-      btnBaixar.disabled = true;
-      btnBaixar.innerHTML = 'Gerando imagem...';
-
-      const element = document.getElementById('grade-print-area');
-      if (!element) {
-        throw new Error('Elemento não encontrado');
-      }
-
-      await new Promise(resolve => setTimeout(resolve, 200));
-
-      const canvas = await html2canvas(element, {
-        scale: 2,
-        useCORS: true,
-        allowTaint: true,
-        backgroundColor: '#ffffff',
-        logging: false,
-        width: element.scrollWidth,
-        height: element.scrollHeight,
-        windowWidth: element.scrollWidth,
-        windowHeight: element.scrollHeight,
-      });
-
-      const link = document.createElement('a');
-      link.download = `grade-escolar-${new Date().toISOString().split('T')[0]}.png`;
-      link.href = canvas.toDataURL('image/png');
-      link.click();
-
-      mostrarToast('Imagem baixada com sucesso!', 'success');
-
-    } catch (error) {
-      console.error('Erro ao gerar imagem:', error);
-      mostrarToast('Erro ao gerar a imagem. Tente novamente.', 'error');
-    } finally {
-      btnBaixar.disabled = false;
-      btnBaixar.innerHTML = `
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-          <polyline points="7 10 12 15 17 10"/>
-          <line x1="12" y1="15" x2="12" y2="3"/>
-        </svg>
-        Baixar imagem
-      `;
-    }
-  });
-});
